@@ -3,17 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { supabase } from '../../core/supabase/supabase.client';
 import { Loading } from '../../compartido/components/loading/loading';
-import { Toast } from '../../compartido/components/toast/toast';
 import { Auth } from '../../core/servicios/auth';
 import { Almacenamiento } from '../../core/servicios/almacenamiento';
 import { Router } from '@angular/router';
+import { ToastService } from '../../core/servicios/toast';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
   templateUrl: './usuarios.html',
   styleUrls: ['./usuarios.scss'],
-  imports: [CommonModule, ReactiveFormsModule, Loading, Toast],
+  imports: [CommonModule, ReactiveFormsModule, Loading],
 })
 export class Usuarios implements OnInit {
   usuarios: any[] = [];
@@ -22,15 +22,14 @@ export class Usuarios implements OnInit {
 
   form!: FormGroup;
   fotos: File[] = [];
-  toastMessage = '';
-  toastType: 'success' | 'error' = 'success';
 
   constructor(
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private auth: Auth,
     private almacenamiento: Almacenamiento,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -41,22 +40,12 @@ export class Usuarios implements OnInit {
       dni: ['', [Validators.required, Validators.minLength(7)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      perfil: ['admin', Validators.required], 
+      perfil: ['admin', Validators.required],
       especialidad: [''],
-      obra_social: [''], 
+      obra_social: [''],
     });
 
     this.cargarUsuarios();
-  }
-
-  mostrarToast(msg: string, tipo: 'success' | 'error' = 'success') {
-    this.toastMessage = msg;
-    this.toastType = tipo;
-    setTimeout(() => {
-      this.toastMessage = '';
-      this.cdr.detectChanges();
-    }, 4000);
-    this.cdr.detectChanges();
   }
 
   async cargarUsuarios() {
@@ -94,13 +83,13 @@ export class Usuarios implements OnInit {
       if (error) throw error;
 
       usuario.aprobado = nuevoEstado;
-      this.mostrarToast(
+      this.toast.show(
         `Especialista ${nuevoEstado ? 'habilitado' : 'inhabilitado'} correctamente.`,
         'success'
       );
     } catch (err) {
       console.error(err);
-      this.mostrarToast('No se pudo actualizar el estado del usuario.', 'error');
+      this.toast.show('No se pudo actualizar el estado del usuario.', 'error');
     }
   }
 
@@ -117,14 +106,13 @@ export class Usuarios implements OnInit {
       const { error } = await supabase.from('usuarios').delete().eq('id', usuario.id);
       if (error) throw error;
 
-      this.usuarios = this.usuarios.filter(u => u.id !== usuario.id);
-      this.mostrarToast('Usuario eliminado correctamente.', 'success');
+      this.usuarios = this.usuarios.filter((u) => u.id !== usuario.id);
+      this.toast.show('Usuario eliminado correctamente.', 'success');
     } catch (err) {
       console.error(err);
-      this.mostrarToast('Error al eliminar usuario.', 'error');
+      this.toast.show('Error al eliminar usuario.', 'error');
     }
   }
-
 
   onFotosSeleccionadas(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -133,24 +121,22 @@ export class Usuarios implements OnInit {
     this.fotos = files.slice(0, maxFotos);
   }
 
-
   async crearUsuario() {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
-      this.mostrarToast('Complete correctamente los campos requeridos.', 'error');
+      this.toast.show('Complete correctamente los campos requeridos.', 'error');
       return;
     }
 
     const { nombre, apellido, edad, dni, email, password, perfil, especialidad, obra_social } =
       this.form.value;
 
-
     if (perfil === 'paciente' && this.fotos.length !== 2) {
-      this.mostrarToast('El paciente debe tener 2 imágenes.', 'error');
+      this.toast.show('El paciente debe tener 2 imágenes.', 'error');
       return;
     }
     if (perfil === 'especialista' && this.fotos.length !== 1) {
-      this.mostrarToast('El especialista debe tener una imagen.', 'error');
+      this.toast.show('El especialista debe tener una imagen.', 'error');
       return;
     }
 
@@ -200,13 +186,13 @@ export class Usuarios implements OnInit {
         if (error) throw error;
       }
 
-      this.mostrarToast('Usuario creado correctamente.', 'success');
+      this.toast.show('Usuario creado correctamente.', 'success');
       this.form.reset({ perfil: 'admin' });
       this.fotos = [];
       this.cargarUsuarios();
     } catch (err: any) {
       console.error(err);
-      this.mostrarToast(err?.message ?? 'Error al crear usuario.', 'error');
+      this.toast.show(err?.message ?? 'Error al crear usuario.', 'error');
     } finally {
       this.loading = false;
       this.cdr.detectChanges();
@@ -216,14 +202,13 @@ export class Usuarios implements OnInit {
   async cerrarSesion() {
     try {
       await this.auth.signOut();
-      this.mostrarToast('Sesión cerrada correctamente.', 'success');
+      this.toast.show('Sesión cerrada correctamente.', 'success');
       setTimeout(() => {
         this.router.navigate(['/login']);
       }, 1200);
     } catch (err) {
       console.error(err);
-      this.mostrarToast('Error al cerrar sesión.', 'error');
+      this.toast.show('Error al cerrar sesión.', 'error');
     }
   }
-
 }

@@ -2,7 +2,6 @@
 <section class="usuarios">
   <h2>Gestión de Usuarios</h2>
   <app-loading *ngIf="loading"></app-loading>
-  <app-toast [message]="toastMessage" [type]="toastType"></app-toast>
 
   <p *ngIf="mensaje && !loading">{{ mensaje }}</p>
 

@@ -8,14 +8,15 @@ import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../compartido/components/navbar/navbar';
 import { ImageUploader } from '../../compartido/components/image-uploader/image-uploader';
 import { Loading } from '../../compartido/components/loading/loading';
-import { Toast } from '../../compartido/components/toast/toast';
+import { ToastService } from '../../core/servicios/toast';
+
 
 @Component({
   selector: 'app-registro',
   standalone: true,
   templateUrl: './registro.html',
   styleUrls: ['./registro.scss'],
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, Navbar, ImageUploader, Loading, Toast],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, Navbar, ImageUploader, Loading],
 })
 export class Registro implements OnInit {
   tipo: 'paciente' | 'especialista' = 'paciente';
@@ -26,9 +27,6 @@ export class Registro implements OnInit {
   nuevaEspecialidad: string = '';
   imagenError = '';
 
-  toastMessage = '';
-  toastType: 'success' | 'error' = 'success';
-
   formPaciente!: FormGroup;
   formEspecialista!: FormGroup;
 
@@ -36,7 +34,8 @@ export class Registro implements OnInit {
     private fb: FormBuilder,
     private auth: Auth,
     private almacenamiento: Almacenamiento,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -73,13 +72,10 @@ export class Registro implements OnInit {
     }
   }
 
-  // --------------------------------------------------------------------
-  // PACIENTE
-  // --------------------------------------------------------------------
   async registrarPaciente() {
     this.formPaciente.markAllAsTouched();
     if (this.formPaciente.invalid || this.fotos.length !== 2) {
-      this.mostrarToast('Complete todos los campos y suba 2 imágenes.', 'error');
+      this.toast.show('Complete todos los campos y suba 2 imágenes.', 'error');
       return;
     }
 
@@ -119,29 +115,26 @@ export class Registro implements OnInit {
       if (pacienteErr) throw pacienteErr;
 
       if (!signUpData.session) {
-        this.mostrarToast('Te enviamos un mail para verificar tu cuenta. Confirmalo para completar el registro.', 'success');
+        this.toast.show('Te enviamos un mail para verificar tu cuenta. Confirmalo para completar el registro.', 'success');
       } else {
-        this.mostrarToast('Paciente registrado correctamente.', 'success');
+        this.toast.show('Paciente registrado correctamente.', 'success');
       }
 
       this.formPaciente.reset();
       this.fotos = [];
     } catch (err: any) {
       console.error(err);
-      this.mostrarToast(err?.message ?? 'Error al registrar paciente.', 'error');
+      this.toast.show(err?.message ?? 'Error al registrar paciente.', 'error');
     } finally {
       this.loading = false;
       this.cdr.detectChanges();
     }
   }
 
-  // --------------------------------------------------------------------
-  // ESPECIALISTA
-  // --------------------------------------------------------------------
   async registrarEspecialista() {
     this.formEspecialista.markAllAsTouched();
     if (this.formEspecialista.invalid || this.fotos.length !== 1) {
-      this.mostrarToast('Complete todos los campos y suba una imagen.', 'error');
+      this.toast.show('Complete todos los campos y suba una imagen.', 'error');
       return;
     }
 
@@ -180,32 +173,19 @@ export class Registro implements OnInit {
       if (especialistaErr) throw especialistaErr;
 
       if (!signUpData.session) {
-        this.mostrarToast('Te enviamos un mail para verificar tu cuenta. Luego un administrador aprobará tu registro.', 'success');
+        this.toast.show('Te enviamos un mail para verificar tu cuenta. Luego un administrador aprobará tu registro.', 'success');
       } else {
-        this.mostrarToast('Especialista registrado correctamente. Esperando aprobación.', 'success');
+        this.toast.show('Especialista registrado correctamente. Esperando aprobación.', 'success');
       }
 
       this.formEspecialista.reset();
       this.fotos = [];
     } catch (err: any) {
       console.error(err);
-      this.mostrarToast(err?.message ?? 'Error al registrar especialista.', 'error');
+      this.toast.show(err?.message ?? 'Error al registrar especialista.', 'error');
     } finally {
       this.loading = false;
       this.cdr.detectChanges();
     }
-  }
-
-  // --------------------------------------------------------------------
-  // TOAST
-  // --------------------------------------------------------------------
-  mostrarToast(mensaje: string, tipo: 'success' | 'error' = 'success') {
-    this.toastMessage = mensaje;
-    this.toastType = tipo;
-    setTimeout(() => {
-      this.toastMessage = '';
-      this.cdr.detectChanges();
-    }, 4000);
-    this.cdr.detectChanges();
   }
 }
