@@ -6,11 +6,15 @@ import { Perfiles } from '../servicios/perfiles';
 export const adminGuard: CanActivateFn = async () => {
   const router = inject(Router);
   const profiles = inject(Perfiles);
-  
-  const me = await profiles.getMyProfile();
-  if (me?.rol !== 'admin') {
+  try {
+    const me = await profiles.getMyProfile();
+    if (me?.perfil !== 'admin') {
+      router.navigateByUrl('/');
+      return false;
+    }
+    return true;
+  } catch {
     router.navigateByUrl('/');
     return false;
   }
-  return true;
 };

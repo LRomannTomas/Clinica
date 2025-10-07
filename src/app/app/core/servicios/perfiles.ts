@@ -5,7 +5,7 @@ import { supabase } from '../supabase/supabase.client';
 
 @Injectable({ providedIn: 'root' })
 export class Perfiles {
-  private table = 'perfiles'; // la creamos en Supabase
+  private table = 'usuarios'; 
 
   async getMyProfile(): Promise<Perfil | null> {
     const { data: auth } = await supabase.auth.getUser();
@@ -22,5 +22,5 @@ export class Perfiles {
     return data as Perfil;
   }
 
-  // + métodos CRUD que iremos usando en el Sprint 1
+
 }

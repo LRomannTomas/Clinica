@@ -55,75 +55,58 @@ export class Login implements OnInit {
   }
 
   async iniciarSesion() {
-    this.form.markAllAsTouched();
-    if (this.form.invalid) {
-      this.mostrarToast('Complete correctamente los campos.', 'error');
-      this.cdr.detectChanges();
+  this.form.markAllAsTouched();
+  if (this.form.invalid) {
+    this.mostrarToast('Complete correctamente los campos.', 'error');
+    return;
+  }
+
+  this.loading = true;
+  const { email, password } = this.form.value;
+
+  try {
+    const { data, error } = await this.auth.signIn(email, password);
+    if (error) throw error;
+
+    const user = data.user;
+    if (!user) throw new Error('No se pudo obtener el usuario.');
+
+    const { data: perfil, error: perfilErr } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (perfilErr) throw perfilErr;
+    if (!perfil) throw new Error('Perfil no encontrado.');
+
+    if (perfil.perfil === 'especialista' && !perfil.aprobado) {
+      this.mostrarToast(
+        'Tu cuenta aún no fue aprobada por el administrador.',
+        'error'
+      );
       return;
     }
 
-    this.loading = true;
-    const { email, password } = this.form.value;
-
-    try {
-      const { data, error } = await this.auth.signIn(email, password);
-      if (error) throw error;
-
-      const user = data.user;
-      if (!user) throw new Error('No se pudo obtener el usuario.');
-
-      let { data: perfil, error: perfilErr } = await supabase
-        .from('pacientes')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (perfilErr && perfilErr.code !== 'PGRST116') throw perfilErr;
-
-      if (!perfil) {
-        const { data: esp, error: espErr } = await supabase
-          .from('especialistas')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
-        if (espErr && espErr.code !== 'PGRST116') throw espErr;
-        perfil = esp;
-      }
-
-      if (!perfil) {
-        throw new Error(
-          'Tu perfil no fue encontrado. Si aún no te registraste, por favor completá el registro antes de iniciar sesión.'
-        );
-      }
-
-      if ('aprobado' in perfil && perfil.aprobado === false) {
-        this.mostrarToast(
-          'Tu cuenta de especialista aún no fue aprobada por el administrador.',
-          'error'
-        );
-        this.loading = false;
-        this.cdr.detectChanges();
-        return;
-      }
-
-      if (perfil.perfil === 'admin') {
-        this.router.navigate(['/usuarios']);
-      } else {
-        this.router.navigate(['/home']);
-      }
-
-      this.mostrarToast('Inicio de sesión exitoso. ¡Bienvenido!', 'success');
-    } catch (err: any) {
-      console.error(err);
-      this.mostrarToast(err?.message || 'Error al iniciar sesión.', 'error');
-    } finally {
-      this.loading = false;
-      this.cdr.detectChanges();
+    if (perfil.perfil === 'admin') {
+      this.router.navigate(['/usuarios']);
+    } else {
+      this.router.navigate(['/home']);
     }
+
+    this.mostrarToast('Inicio de sesión exitoso. ¡Bienvenido!', 'success');
+  } catch (err: any) {
+    console.error(err);
+    this.mostrarToast(err?.message || 'Error al iniciar sesión.', 'error');
+  } finally {
+    this.loading = false;
+    this.cdr.detectChanges();
   }
+}
+
 
   // ------------------------------------------------------------
-  // ACCESOS RÁPIDOS (solo rellenan, NO inician sesión)
+  // ACCESOS RAPIDOS
   // ------------------------------------------------------------
   accesoRapido(rol: RolQuick) {
     const creds = DEMO_CREDENTIALS[rol];

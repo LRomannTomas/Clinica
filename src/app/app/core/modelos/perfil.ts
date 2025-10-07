@@ -3,7 +3,7 @@ import { Rol } from "./roles";
 
 export interface Perfil {
   id: string;              
-  rol: Rol;
+  perfil: 'admin' | 'paciente' | 'especialista';
   nombre: string;
   apellido: string;
   edad: number;
