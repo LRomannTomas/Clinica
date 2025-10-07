@@ -1,0 +1,52 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #0097a7;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+
+    span {
+      color: #b2ebf2;
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    list-style: none;
+
+    a {
+      text-decoration: none;
+      color: white;
+      font-weight: 500;
+      transition: color 0.2s ease-in-out;
+
+      &:hover {
+        color: #b2ebf2;
+      }
+    }
+
+    .btn-salir {
+      border: 1px solid white;
+      background: transparent;
+      color: white;
+      border-radius: 5px;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #006064;
+      }
+    }
+  }
+}

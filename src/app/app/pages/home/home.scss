@@ -1,0 +1,34 @@
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 20px;
+  text-align: center;
+
+  h2 {
+    font-size: 28px;
+    color: #333;
+  }
+
+  p {
+    font-size: 18px;
+    color: #555;
+  }
+
+  .logout-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+
+    &:hover {
+      background-color: #c82333;
+    }
+  }
+}

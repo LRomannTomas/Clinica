@@ -1,0 +1,125 @@
+.registro-clinica {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%);
+  font-family: 'Poppins', sans-serif;
+
+  .contenedor {
+    background: white;
+    padding: 2.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+
+    h2 {
+      margin-bottom: 1rem;
+      color: #006064;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+
+      button {
+        padding: 0.5rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        background-color: #ddd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &.active {
+          background-color: #0097a7;
+          color: white;
+        }
+
+        &:hover {
+          background-color: #80deea;
+        }
+      }
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      align-items: center;
+
+      input,
+      select,
+      button {
+        padding: 0.8rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      select {
+        background-color: white;
+        appearance: none;
+        cursor: pointer;
+      }
+
+      .error {
+        color: #e76f51;
+        font-size: 0.85rem;
+        text-align: left;
+        width: 100%;
+        margin-top: -0.4rem;
+      }
+
+      button {
+        margin-top: 0.6rem;
+        background-color: #0097a7;
+        color: white;
+        font-weight: 500;
+        transition: all 0.2s;
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+          background-color: #006064;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched {
+  border: 1px solid #e76f51;
+  box-shadow: 0 0 3px rgba(231, 111, 81, 0.5);
+}
+
+input.ng-valid.ng-touched,
+select.ng-valid.ng-touched {
+  border: 1px solid #2a9d8f;
+}
+
+.error {
+  color: #e76f51;
+  font-size: 0.85rem;
+  text-align: left;
+  width: 100%;
+  margin-top: -0.3rem;
+  min-height: 18px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #b0bec5 !important;
+}
+

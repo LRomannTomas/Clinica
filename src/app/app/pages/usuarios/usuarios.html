@@ -1,0 +1,92 @@
+<button class="logout-btn" (click)="cerrarSesion()">Cerrar sesión</button>
+<section class="usuarios">
+  <h2>Gestión de Usuarios</h2>
+  <app-loading *ngIf="loading"></app-loading>
+  <app-toast [message]="toastMessage" [type]="toastType"></app-toast>
+
+  <p *ngIf="mensaje && !loading">{{ mensaje }}</p>
+
+  <div class="nuevo-usuario">
+    <h3>Crear nuevo usuario</h3>
+
+    <form [formGroup]="form" (ngSubmit)="crearUsuario()">
+      <div class="grid">
+        <input formControlName="nombre" placeholder="Nombre" />
+        <input formControlName="apellido" placeholder="Apellido" />
+        <input type="number" formControlName="edad" placeholder="Edad" />
+        <input formControlName="dni" placeholder="DNI" />
+        <input type="email" formControlName="email" placeholder="Email" />
+        <input type="password" formControlName="password" placeholder="Contraseña" />
+
+        <select formControlName="perfil">
+          <option value="admin">Administrador</option>
+          <option value="especialista">Especialista</option>
+          <option value="paciente">Paciente</option>
+        </select>
+
+        <input
+          *ngIf="form.value.perfil === 'especialista'"
+          formControlName="especialidad"
+          placeholder="Especialidad"
+        />
+        <input
+          *ngIf="form.value.perfil === 'paciente'"
+          formControlName="obra_social"
+          placeholder="Obra Social"
+        />
+      </div>
+
+      <div class="imagen-selector">
+        <label for="fotoInput" class="custom-upload">
+          <span class="bi bi-image"></span>
+          Seleccionar {{ form.value.perfil === 'paciente' ? '2 imágenes' : 'imagen' }}
+        </label>
+        <input
+          id="fotoInput"
+          type="file"
+          [attr.multiple]="form.value.perfil === 'paciente' ? '' : null"
+          accept="image/*"
+          (change)="onFotosSeleccionadas($event)"
+        />
+        <div *ngIf="fotos.length > 0" class="preview">
+          <p>{{ fotos.length }} archivo(s) seleccionado(s)</p>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="loading">Crear Usuario</button>
+    </form>
+  </div>
+
+  <hr />
+
+  <table *ngIf="!loading && usuarios.length > 0">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Perfil</th>
+        <th>Email</th>
+        <th>Aprobado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let u of usuarios">
+        <td>{{ u.nombre }} {{ u.apellido }}</td>
+        <td>{{ u.perfil }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          <span *ngIf="u.perfil === 'especialista'">
+            {{ u.aprobado ? 'Sí' : 'No' }}
+          </span>
+          <span *ngIf="u.perfil !== 'especialista'">-</span>
+        </td>
+        <td class="acciones">
+          <button *ngIf="u.perfil === 'especialista'" (click)="toggleAprobado(u)">
+            {{ u.aprobado ? 'Inhabilitar' : 'Aprobar' }}
+          </button>
+          <button (click)="eliminarUsuario(u)">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>

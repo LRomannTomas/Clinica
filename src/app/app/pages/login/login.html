@@ -1,0 +1,46 @@
+<app-navbar></app-navbar>
+
+<section class="login">
+  <div class="contenedor">
+    <h2>Inicio de Sesión</h2>
+
+    <form [formGroup]="form" (ngSubmit)="iniciarSesion()">
+      <input type="email" formControlName="email" placeholder="Correo electrónico" />
+      <small class="error" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+        Ingrese un correo válido.
+      </small>
+
+      <input type="password" formControlName="password" placeholder="Contraseña" />
+      <small class="error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+        La contraseña debe tener al menos 6 caracteres.
+      </small>
+
+      <button type="submit" [disabled]="loading || form.invalid">Ingresar</button>
+    </form>
+
+    <div class="accesos-rapidos">
+      <button [class.activo]="rolSeleccionado === 'admin'" (click)="accesoRapido('admin')">
+        👑 Admin
+      </button>
+
+      <button
+        [class.activo]="rolSeleccionado === 'especialista'"
+        (click)="accesoRapido('especialista')"
+      >
+        🩺 Especialista
+      </button>
+
+      <button [class.activo]="rolSeleccionado === 'paciente'" (click)="accesoRapido('paciente')">
+        💊 Paciente
+      </button>
+    </div>
+
+    <p class="registrate">
+      ¿No tenés cuenta?
+      <a routerLink="/registro">Registrate aquí</a>
+    </p>
+
+    <app-loading *ngIf="loading"></app-loading>
+    <app-toast [message]="toastMessage" [type]="toastType"></app-toast>
+  </div>
+</section>

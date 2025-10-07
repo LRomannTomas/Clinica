@@ -1,0 +1,63 @@
+.bienvenida {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%);
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+
+  .contenedor {
+    background: white;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 500px;
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      color: #006064;
+
+      span {
+        color: #00838f;
+        font-weight: 600;
+      }
+    }
+
+    .subtitulo {
+      color: #555;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    .acciones {
+      display: flex;
+      justify-content: center;
+      gap: 1.2rem;
+
+      .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+
+        &.btn-login {
+          background-color: #00838f;
+          color: white;
+        }
+
+        &.btn-registro {
+          background-color: #80deea;
+          color: #004d40;
+        }
+
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+  }
+}

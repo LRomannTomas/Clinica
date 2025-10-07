@@ -1,0 +1,19 @@
+<div class="image-uploader">
+  <label class="upload-btn">
+    <input
+      type="file"
+      [multiple]="multiple"
+      (change)="onFileChange($event)"
+      hidden
+      accept="image/*"
+    />
+    📸 <span>Seleccionar {{ multiple ? 'imágenes' : 'imagen' }}</span>
+  </label>
+
+  <div class="preview" *ngIf="previews.length > 0">
+    <div class="thumb" *ngFor="let img of previews; let i = index">
+      <img [src]="img" alt="Vista previa" />
+      <button type="button" class="delete-btn" (click)="eliminarImagen(i)">✖</button>
+    </div>
+  </div>
+</div>

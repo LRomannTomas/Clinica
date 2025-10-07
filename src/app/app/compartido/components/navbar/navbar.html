@@ -1,0 +1,18 @@
+<nav class="navbar">
+  <div class="logo">
+    🏥 <span>Clínica</span> OnLine
+  </div>
+
+  <ul class="nav-links">
+    <li><a routerLink="/">Inicio</a></li>
+
+    <li *ngIf="!isLoggedIn"><a routerLink="/login">Ingresar</a></li>
+    <li *ngIf="!isLoggedIn"><a routerLink="/registro">Registrarse</a></li>
+
+    <li *ngIf="isLoggedIn && role === 'admin'"><a routerLink="/usuarios">Usuarios</a></li>
+
+    <li *ngIf="isLoggedIn">
+      <button (click)="logout()" class="btn-salir">Cerrar sesión</button>
+    </li>
+  </ul>
+</nav>
