@@ -21,7 +21,7 @@ export class Usuarios implements OnInit {
   mensaje = '';
 
   form!: FormGroup;
-  fotos: File[] = []; // ahora admite múltiples imágenes (hasta 2 para paciente)
+  fotos: File[] = [];
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
 
@@ -41,9 +41,9 @@ export class Usuarios implements OnInit {
       dni: ['', [Validators.required, Validators.minLength(7)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      perfil: ['admin', Validators.required], // admin | especialista | paciente
-      especialidad: [''], // si aplica
-      obra_social: [''], // si aplica
+      perfil: ['admin', Validators.required], 
+      especialidad: [''],
+      obra_social: [''], 
     });
 
     this.cargarUsuarios();
@@ -59,9 +59,6 @@ export class Usuarios implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // ------------------------------------------------------------
-  // CARGAR LISTADO DE USUARIOS
-  // ------------------------------------------------------------
   async cargarUsuarios() {
     this.loading = true;
     this.mensaje = '';
@@ -82,9 +79,6 @@ export class Usuarios implements OnInit {
     }
   }
 
-  // ------------------------------------------------------------
-  // TOGGLE APROBADO (SOLO ESPECIALISTAS)
-  // ------------------------------------------------------------
   async toggleAprobado(usuario: any) {
     const nuevoEstado = !usuario.aprobado;
     const accion = nuevoEstado ? 'aprobar' : 'inhabilitar';
@@ -110,9 +104,6 @@ export class Usuarios implements OnInit {
     }
   }
 
-  // ------------------------------------------------------------
-  // ELIMINAR USUARIO
-  // ------------------------------------------------------------
   async eliminarUsuario(usuario: any) {
     if (!confirm(`¿Seguro que querés eliminar al usuario ${usuario.nombre}?`)) return;
 
@@ -134,9 +125,7 @@ export class Usuarios implements OnInit {
     }
   }
 
-  // ------------------------------------------------------------
-  // FOTOS (1 o 2 según el tipo)
-  // ------------------------------------------------------------
+
   onFotosSeleccionadas(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = input.files ? (Array.from(input.files) as File[]) : [];
@@ -144,9 +133,7 @@ export class Usuarios implements OnInit {
     this.fotos = files.slice(0, maxFotos);
   }
 
-  // ------------------------------------------------------------
-  // CREAR NUEVO USUARIO
-  // ------------------------------------------------------------
+
   async crearUsuario() {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
@@ -157,7 +144,7 @@ export class Usuarios implements OnInit {
     const { nombre, apellido, edad, dni, email, password, perfil, especialidad, obra_social } =
       this.form.value;
 
-    // 🔹 Validar fotos según tipo
+
     if (perfil === 'paciente' && this.fotos.length !== 2) {
       this.mostrarToast('El paciente debe tener 2 imágenes.', 'error');
       return;
@@ -174,7 +161,6 @@ export class Usuarios implements OnInit {
 
       const userId = signUpData.user?.id ?? crypto.randomUUID();
 
-      // Subir imágenes
       const fotoUrls: string[] = [];
       for (let i = 0; i < this.fotos.length; i++) {
         const url = await this.almacenamiento.subirImagen(
@@ -186,7 +172,6 @@ export class Usuarios implements OnInit {
         if (url) fotoUrls.push(url);
       }
 
-      // Insertar en usuarios
       const { error: usuarioErr } = await supabase.from('usuarios').insert({
         id: userId,
         nombre: nombre.trim(),
@@ -199,7 +184,6 @@ export class Usuarios implements OnInit {
       });
       if (usuarioErr) throw usuarioErr;
 
-      // Insertar en subtipo
       if (perfil === 'paciente') {
         const { error } = await supabase.from('pacientes').insert({
           id: userId,

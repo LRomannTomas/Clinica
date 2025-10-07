@@ -29,7 +29,7 @@ export class Login implements OnInit {
   toastMessage = '';
   toastType: 'success' | 'error' | 'info' = 'info';
 
-  rolSeleccionado: RolQuick | null = null; // 🔹 Nuevo
+  rolSeleccionado: RolQuick | null = null; 
 
   constructor(
     private fb: FormBuilder,
@@ -133,6 +133,6 @@ export class Login implements OnInit {
     }
 
     this.form.patchValue({ email: creds.email, password: creds.password });
-    this.rolSeleccionado = rol; // 🔹 Guardamos el rol seleccionado
+    this.rolSeleccionado = rol; 
   }
 }
