@@ -1,91 +1,139 @@
 <button class="logout-btn" (click)="cerrarSesion()">Cerrar sesión</button>
+
 <section class="usuarios">
-  <h2>Gestión de Usuarios</h2>
-  <app-loading *ngIf="loading"></app-loading>
+  <!-- 🧩 VISTA 1: TABLA -->
+  <ng-container *ngIf="vista === 'tabla'">
+    <h2>Gestión de Usuarios</h2>
+    <app-loading *ngIf="loading"></app-loading>
 
-  <p *ngIf="mensaje && !loading">{{ mensaje }}</p>
+    <p *ngIf="mensaje && !loading">{{ mensaje }}</p>
 
-  <div class="nuevo-usuario">
-    <h3>Crear nuevo usuario</h3>
+    <button class="nuevo-btn" (click)="irA('tipo')">+ Crear Usuario +</button>
+
+    <table *ngIf="!loading && usuarios.length > 0">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Perfil</th>
+          <th>Email</th>
+          <th>Aprobado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of usuarios">
+          <td>{{ u.nombre }} {{ u.apellido }}</td>
+          <td>{{ u.perfil }}</td>
+          <td>{{ u.email }}</td>
+          <td>
+            <span *ngIf="u.perfil === 'especialista'">
+              {{ u.aprobado ? 'Sí' : 'No' }}
+            </span>
+            <span *ngIf="u.perfil !== 'especialista'">-</span>
+          </td>
+          <td class="acciones">
+            <button *ngIf="u.perfil === 'especialista'" (click)="toggleAprobado(u)">
+              {{ u.aprobado ? 'Inhabilitar' : 'Aprobar' }}
+            </button>
+            <button (click)="eliminarUsuario(u)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-container>
+
+  <ng-container *ngIf="vista === 'tipo'">
+    <button class="btn-volver" (click)="volverAlInicio()">← Volver</button>
+    <h2>Seleccioná el tipo de usuario</h2>
+
+    <div class="opciones-perfil">
+      <div class="opcion" (click)="seleccionarTipo('admin')">
+        <img src="assets/images/admin.png" alt="Administrador" />
+        <span>Administrador</span>
+      </div>
+      <div class="opcion" (click)="seleccionarTipo('especialista')">
+        <img src="assets/images/medico.png" alt="Especialista" />
+        <span>Especialista</span>
+      </div>
+      <div class="opcion" (click)="seleccionarTipo('paciente')">
+        <img src="assets/images/paciente.png" alt="Paciente" />
+        <span>Paciente</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="vista === 'form'">
+    <button class="btn-volver" (click)="volverASeleccion()">← Volver</button>
+    <h2>Crear {{ tipoSeleccionado | titlecase }}</h2>
 
     <form [formGroup]="form" (ngSubmit)="crearUsuario()">
-      <div class="grid">
-        <input formControlName="nombre" placeholder="Nombre" />
-        <input formControlName="apellido" placeholder="Apellido" />
-        <input type="number" formControlName="edad" placeholder="Edad" />
-        <input formControlName="dni" placeholder="DNI" />
-        <input type="email" formControlName="email" placeholder="Email" />
-        <input type="password" formControlName="password" placeholder="Contraseña" />
-
-        <select formControlName="perfil">
-          <option value="admin">Administrador</option>
-          <option value="especialista">Especialista</option>
-          <option value="paciente">Paciente</option>
-        </select>
-
-        <input
-          *ngIf="form.value.perfil === 'especialista'"
-          formControlName="especialidad"
-          placeholder="Especialidad"
-        />
-        <input
-          *ngIf="form.value.perfil === 'paciente'"
-          formControlName="obra_social"
-          placeholder="Obra Social"
-        />
-      </div>
-
-      <div class="imagen-selector">
-        <label for="fotoInput" class="custom-upload">
-          <span class="bi bi-image"></span>
-          Seleccionar {{ form.value.perfil === 'paciente' ? '2 imágenes' : 'imagen' }}
-        </label>
-        <input
-          id="fotoInput"
-          type="file"
-          [attr.multiple]="form.value.perfil === 'paciente' ? '' : null"
-          accept="image/*"
-          (change)="onFotosSeleccionadas($event)"
-        />
-        <div *ngIf="fotos.length > 0" class="preview">
-          <p>{{ fotos.length }} archivo(s) seleccionado(s)</p>
+      <div class="form-container">
+        <div class="grid">
+          <input formControlName="nombre" placeholder="Nombre" />
+          <input formControlName="apellido" placeholder="Apellido" />
+          <input type="number" formControlName="edad" placeholder="Edad" />
+          <input formControlName="dni" placeholder="DNI" />
+          <input type="email" formControlName="email" placeholder="Email" />
+          <input type="password" formControlName="password" placeholder="Contraseña" />
+          <input
+            *ngIf="tipoSeleccionado === 'paciente'"
+            formControlName="obra_social"
+            placeholder="Obra Social"
+          />
         </div>
+
+        <div *ngIf="tipoSeleccionado === 'especialista'" class="especialidades-container">
+          <h3>Seleccioná tus especialidades</h3>
+
+          <div class="carrusel-wrapper">
+            <button class="flecha izquierda" type="button" (click)="scrollCarrusel('izquierda')">
+              ‹
+            </button>
+
+            <div class="carrusel">
+              <div
+                *ngFor="let esp of especialidades"
+                class="opcion"
+                [class.seleccionado]="especialidadesSeleccionadas.includes(esp.nombre)"
+                (click)="toggleEspecialidad(esp.nombre)"
+              >
+                <img [src]="'assets/images/' + esp.archivo" [alt]="esp.nombre" />
+                <span>{{ esp.nombre }}</span>
+              </div>
+            </div>
+
+            <button class="flecha derecha" type="button" (click)="scrollCarrusel('derecha')">
+              ›
+            </button>
+          </div>
+
+          <input
+            *ngIf="mostrarOtraEspecialidad"
+            [(ngModel)]="nuevaEspecialidad"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="Ingresá las especialidades (separadas por coma)"
+          />
+        </div>
+
+        <div class="imagen-selector">
+          <label for="fotoInput" class="custom-upload">
+            <span class="bi bi-image"></span>
+            Seleccionar {{ tipoSeleccionado === 'paciente' ? '2 imágenes' : 'imagen' }}
+          </label>
+          <input
+            id="fotoInput"
+            type="file"
+            [attr.multiple]="tipoSeleccionado === 'paciente' ? '' : null"
+            accept="image/*"
+            (change)="onFotosSeleccionadas($event)"
+          />
+          <div *ngIf="fotos.length > 0" class="preview">
+            <p>{{ fotos.length }} archivo(s) seleccionado(s)</p>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="loading">Crear Usuario</button>
       </div>
-
-      <button type="submit" [disabled]="loading">Crear Usuario</button>
     </form>
-  </div>
-
-  <hr />
-
-  <table *ngIf="!loading && usuarios.length > 0">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Perfil</th>
-        <th>Email</th>
-        <th>Aprobado</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let u of usuarios">
-        <td>{{ u.nombre }} {{ u.apellido }}</td>
-        <td>{{ u.perfil }}</td>
-        <td>{{ u.email }}</td>
-        <td>
-          <span *ngIf="u.perfil === 'especialista'">
-            {{ u.aprobado ? 'Sí' : 'No' }}
-          </span>
-          <span *ngIf="u.perfil !== 'especialista'">-</span>
-        </td>
-        <td class="acciones">
-          <button *ngIf="u.perfil === 'especialista'" (click)="toggleAprobado(u)">
-            {{ u.aprobado ? 'Inhabilitar' : 'Aprobar' }}
-          </button>
-          <button (click)="eliminarUsuario(u)">Eliminar</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  </ng-container>
 </section>

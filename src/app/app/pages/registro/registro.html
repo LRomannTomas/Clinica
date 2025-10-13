@@ -2,189 +2,127 @@
 
 <section class="registro-clinica">
   <div class="contenedor">
-    <h2>Registro</h2>
-
-    <div class="tabs">
-      <button type="button" [class.active]="tipo === 'paciente'" (click)="tipo = 'paciente'">
-        Paciente
-      </button>
-      <button
-        type="button"
-        [class.active]="tipo === 'especialista'"
-        (click)="tipo = 'especialista'"
-      >
-        Especialista
-      </button>
+    <!-- 🔹 Selección de tipo -->
+    <div *ngIf="!tipoSeleccionado" class="seleccion-tipo">
+      <h2>Registrarse como...</h2>
+      <div class="botones-tipo">
+        <button class="btn-tipo" (click)="seleccionarTipo('paciente')">
+          <img src="assets/images/paciente.png" alt="Paciente" />
+          <span>Paciente</span>
+        </button>
+        <button class="btn-tipo" (click)="seleccionarTipo('especialista')">
+          <img src="assets/images/medico.png" alt="Especialista" />
+          <span>Especialista</span>
+        </button>
+      </div>
     </div>
 
-    <ng-container [ngSwitch]="tipo">
-      <!-- PACIENTE -->
-      <form *ngSwitchCase="'paciente'" [formGroup]="formPaciente" (ngSubmit)="registrarPaciente()">
-        <input formControlName="nombre" placeholder="Nombre" />
-        <small
-          class="error"
-          *ngIf="formPaciente.get('nombre')?.touched && formPaciente.get('nombre')?.invalid"
-        >
-          Ingrese su nombre.
-        </small>
+    <!-- 🔹 Formulario paciente -->
+    <form
+      *ngIf="tipoSeleccionado === 'paciente'"
+      [formGroup]="formPaciente"
+      (ngSubmit)="registrarPaciente()"
+    >
+      <button class="btn-volver" type="button" (click)="volver()">← Volver</button>
+      <h2>Registro de Paciente</h2>
 
-        <input formControlName="apellido" placeholder="Apellido" />
-        <small
-          class="error"
-          *ngIf="formPaciente.get('apellido')?.touched && formPaciente.get('apellido')?.invalid"
-        >
-          Ingrese su apellido.
-        </small>
+      <input formControlName="nombre" placeholder="Nombre" />
+      <input formControlName="apellido" placeholder="Apellido" />
+      <input type="number" formControlName="edad" placeholder="Edad" />
+      <input formControlName="dni" placeholder="DNI" />
+      <input formControlName="obra_social" placeholder="Obra Social" />
+      <input type="email" formControlName="email" placeholder="Email" />
+      <input type="password" formControlName="password" placeholder="Contraseña" />
 
-        <input type="number" formControlName="edad" placeholder="Edad" />
-        <small
-          class="error"
-          *ngIf="formPaciente.get('edad')?.touched && formPaciente.get('edad')?.invalid"
-        >
-          Ingrese una edad válida (mayor a 0).
-        </small>
+      <app-image-uploader
+        [multiple]="true"
+        (files)="onFotosSeleccionadas($event)"
+      ></app-image-uploader>
+      <p class="error" *ngIf="fotos.length < 2">* Debe subir 2 imágenes.</p>
 
-        <input formControlName="dni" placeholder="DNI" />
-        <small
-          class="error"
-          *ngIf="formPaciente.get('dni')?.touched && formPaciente.get('dni')?.invalid"
-        >
-          Ingrese un número de DNI válido.
-        </small>
+      <button type="submit" [disabled]="loading || formPaciente.invalid || fotos.length !== 2">
+        Registrarse
+      </button>
+    </form>
 
-        <input formControlName="obra_social" placeholder="Obra Social" />
-        <small
-          class="error"
-          *ngIf="formPaciente.get('obra_social')?.touched && formPaciente.get('obra_social')?.invalid"
-        >
-          Indique su obra social.
-        </small>
+    <!-- 🔹 Especialista: Paso 1 -->
+    <form
+      *ngIf="tipoSeleccionado === 'especialista' && pasoEspecialista === 1"
+      [formGroup]="formEspecialista"
+      (ngSubmit)="continuarEspecialista()"
+    >
+      <button class="btn-volver" type="button" (click)="volver()">← Volver</button>
+      <h2>Registro de Especialista (1/2)</h2>
 
-        <input type="email" formControlName="email" placeholder="Email" />
-        <small
-          class="error"
-          *ngIf="formPaciente.get('email')?.touched && formPaciente.get('email')?.invalid"
-        >
-          Ingrese un correo válido.
-        </small>
+      <input formControlName="nombre" placeholder="Nombre" />
+      <input formControlName="apellido" placeholder="Apellido" />
+      <input type="number" formControlName="edad" placeholder="Edad" />
+      <input formControlName="dni" placeholder="DNI" />
+      <input type="email" formControlName="email" placeholder="Email" />
+      <input type="password" formControlName="password" placeholder="Contraseña" />
 
-        <input type="password" formControlName="password" placeholder="Contraseña" />
-        <small
-          class="error"
-          *ngIf="formPaciente.get('password')?.touched && formPaciente.get('password')?.invalid"
-        >
-          La contraseña debe tener al menos 6 caracteres.
-        </small>
+      <app-image-uploader
+        [multiple]="false"
+        (files)="onFotosSeleccionadas($event)"
+      ></app-image-uploader>
+      <p class="error" *ngIf="fotos.length < 1">* Debe subir una imagen.</p>
 
-        <app-image-uploader
-          [multiple]="true"
-          (files)="onFotosSeleccionadas($event)"
-        ></app-image-uploader>
+      <button type="submit">Siguiente</button>
+    </form>
 
-        <p class="error" *ngIf="fotos.length < 2">
-          * Debe subir 2 imágenes para habilitar el registro.
-        </p>
+    <!-- 🔹 Especialista: Paso 2 -->
+    <div
+      *ngIf="tipoSeleccionado === 'especialista' && pasoEspecialista === 2"
+      class="paso-especialidades"
+    >
+      <button class="btn-volver" type="button" (click)="pasoEspecialista = 1">← Volver</button>
+      <h2>Registro de Especialista (2/2)</h2>
 
-        <button
-          type="submit"
-          [disabled]="loading || formPaciente.invalid || fotos.length !== 2"
-        >
-          Registrarse
-        </button>
-      </form>
+      <div class="especialidades-container">
+        <h3>Seleccioná tus especialidades</h3>
+        <div class="carrusel-wrapper">
+          <button type="button" class="flecha izquierda" (click)="scrollCarrusel('izquierda')">
+            ‹
+          </button>
 
-      <!-- ESPECIALISTA -->
-      <form
-        *ngSwitchCase="'especialista'"
-        [formGroup]="formEspecialista"
-        (ngSubmit)="registrarEspecialista()"
-      >
-        <input formControlName="nombre" placeholder="Nombre" />
-        <small
-          class="error"
-          *ngIf="formEspecialista.get('nombre')?.touched && formEspecialista.get('nombre')?.invalid"
-        >
-          Ingrese su nombre.
-        </small>
+          <div class="carrusel" #carrusel>
+            <div
+              class="opcion"
+              *ngFor="let esp of especialidades"
+              [class.seleccionado]="especialidadesSeleccionadas.includes(esp.nombre)"
+              (click)="toggleEspecialidad(esp.nombre)"
+            >
+              <img [src]="'assets/images/' + esp.archivo" [alt]="esp.nombre" />
+              <span>{{ esp.nombre }}</span>
+            </div>
 
-        <input formControlName="apellido" placeholder="Apellido" />
-        <small
-          class="error"
-          *ngIf="formEspecialista.get('apellido')?.touched && formEspecialista.get('apellido')?.invalid"
-        >
-          Ingrese su apellido.
-        </small>
+            <div
+              class="opcion"
+              [class.seleccionado]="mostrarOtraEspecialidad"
+              (click)="toggleOtra()"
+            >
+              <img src="assets/images/otra.png" alt="Otra" />
+              <span>Otra...</span>
+            </div>
+          </div>
 
-        <input type="number" formControlName="edad" placeholder="Edad" />
-        <small
-          class="error"
-          *ngIf="formEspecialista.get('edad')?.touched && formEspecialista.get('edad')?.invalid"
-        >
-          Ingrese una edad válida.
-        </small>
-
-        <input formControlName="dni" placeholder="DNI" />
-        <small
-          class="error"
-          *ngIf="formEspecialista.get('dni')?.touched && formEspecialista.get('dni')?.invalid"
-        >
-          Ingrese un número de DNI válido.
-        </small>
-
-        <select formControlName="especialidad" (change)="onEspecialidadChange($event)">
-          <option value="">Seleccione una especialidad</option>
-          <option *ngFor="let esp of especialidades" [value]="esp">{{ esp }}</option>
-          <option value="otra">Otra...</option>
-        </select>
-        <small
-          class="error"
-          *ngIf="formEspecialista.get('especialidad')?.touched && formEspecialista.get('especialidad')?.invalid"
-        >
-          Seleccione o agregue una especialidad.
-        </small>
+          <button type="button" class="flecha derecha" (click)="scrollCarrusel('derecha')">
+            ›
+          </button>
+        </div>
 
         <input
           *ngIf="mostrarOtraEspecialidad"
           [(ngModel)]="nuevaEspecialidad"
-          placeholder="Ingrese nueva especialidad"
-        />
-        <small class="error" *ngIf="mostrarOtraEspecialidad && !nuevaEspecialidad">
-          Debe ingresar el nombre de la nueva especialidad.
-        </small>
+          placeholder="(Ejemplo: Gastroenterología, Pediatría)"
+          />
+          <small *ngIf="mostrarOtraEspecialidad" class="info-ayuda">-------------------Podes ingresar más de una, separadas por comas-------------------</small>
+      </div>
 
-        <input type="email" formControlName="email" placeholder="Email" />
-        <small
-          class="error"
-          *ngIf="formEspecialista.get('email')?.touched && formEspecialista.get('email')?.invalid"
-        >
-          Ingrese un correo válido.
-        </small>
-
-        <input type="password" formControlName="password" placeholder="Contraseña" />
-        <small
-          class="error"
-          *ngIf="formEspecialista.get('password')?.touched && formEspecialista.get('password')?.invalid"
-        >
-          La contraseña debe tener al menos 6 caracteres.
-        </small>
-
-        <app-image-uploader
-          [multiple]="false"
-          (files)="onFotosSeleccionadas($event)"
-        ></app-image-uploader>
-
-        <p class="error" *ngIf="fotos.length < 1">
-          * Debe subir una imagen para habilitar el registro.
-        </p>
-
-        <button
-          type="submit"
-          [disabled]="loading || formEspecialista.invalid || fotos.length !== 1"
-        >
-          Registrarse
-        </button>
-      </form>
-    </ng-container>
+      <button class="btn-registrarse" type="button" (click)="registrarEspecialista()">
+        Registrarse
+      </button>
+    </div>
 
     <app-loading *ngIf="loading"></app-loading>
   </div>

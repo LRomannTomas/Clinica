@@ -10,11 +10,13 @@ import { ToastService } from '../../core/servicios/toast';
 
 type RolQuick = 'admin' | 'especialista' | 'paciente';
 
-const DEMO_CREDENTIALS: Record<RolQuick, { email: string; password: string }> = {
-  admin: { email: 'admin@gmail.com', password: 'admin123' },
-  especialista: { email: 'especialista@gmail.com', password: 'especialista123' },
-  paciente: { email: 'paciente@gmail.com', password: 'paciente123' },
-};
+interface AccesoRapido {
+  nombre: string;
+  rol: RolQuick;
+  img: string;
+  email: string;
+  password: string;
+}
 
 @Component({
   selector: 'app-login',
@@ -26,7 +28,8 @@ const DEMO_CREDENTIALS: Record<RolQuick, { email: string; password: string }> = 
 export class Login implements OnInit {
   form!: FormGroup;
   loading = false;
-  rolSeleccionado: RolQuick | null = null;
+  accesoSeleccionado: string | null = null;
+  accesos: AccesoRapido[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -40,6 +43,35 @@ export class Login implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
+
+    // ✅ Generación automática de accesos rápidos
+    const pacientes = Array.from({ length: 3 }, (_, i) => ({
+      nombre: `Paciente ${i + 1}`,
+      rol: 'paciente' as RolQuick,
+      img: 'assets/images/paciente.png',
+      email: `paciente${i + 1}@gmail.com`,
+      password: 'paciente123',
+    }));
+
+    const especialistas = Array.from({ length: 2 }, (_, i) => ({
+      nombre: `Especialista ${i + 1}`,
+      rol: 'especialista' as RolQuick,
+      img: 'assets/images/medico.png',
+      email: `especialista${i + 1}@gmail.com`,
+      password: 'especialista123',
+    }));
+
+    const admin = [
+      {
+        nombre: 'Admin',
+        rol: 'admin' as RolQuick,
+        img: 'assets/images/admin.png',
+        email: 'admin@gmail.com',
+        password: 'admin123',
+      },
+    ];
+
+    this.accesos = [...pacientes, ...especialistas, ...admin];
   }
 
   async iniciarSesion() {
@@ -88,14 +120,8 @@ export class Login implements OnInit {
     }
   }
 
-  accesoRapido(rol: RolQuick) {
-    const creds = DEMO_CREDENTIALS[rol];
-    if (!creds) {
-      this.toast.show('No hay credenciales configuradas para este acceso rápido.', 'error');
-      return;
-    }
-
-    this.form.patchValue({ email: creds.email, password: creds.password });
-    this.rolSeleccionado = rol;
+  accesoRapido(user: AccesoRapido) {
+    this.form.patchValue({ email: user.email, password: user.password });
+    this.accesoSeleccionado = user.nombre;
   }
 }

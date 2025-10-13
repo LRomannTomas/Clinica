@@ -1,6 +1,12 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { supabase } from '../../core/supabase/supabase.client';
 import { Loading } from '../../compartido/components/loading/loading';
 import { Auth } from '../../core/servicios/auth';
@@ -13,12 +19,26 @@ import { ToastService } from '../../core/servicios/toast';
   standalone: true,
   templateUrl: './usuarios.html',
   styleUrls: ['./usuarios.scss'],
-  imports: [CommonModule, ReactiveFormsModule, Loading],
+  imports: [CommonModule, ReactiveFormsModule, Loading, FormsModule],
 })
 export class Usuarios implements OnInit {
+  vista: 'tabla' | 'tipo' | 'form' = 'tabla';
+  tipoSeleccionado: 'admin' | 'especialista' | 'paciente' | null = null;
+
   usuarios: any[] = [];
   loading = false;
   mensaje = '';
+
+  especialidades = [
+    { nombre: 'Cardiología', archivo: 'cardiologia.png' },
+    { nombre: 'Dermatología', archivo: 'dermatologia.png' },
+    { nombre: 'Neurología', archivo: 'neurologia.png' },
+    { nombre: 'Otra', archivo: 'otra.png' },
+  ];
+
+  especialidadesSeleccionadas: string[] = [];
+  mostrarOtraEspecialidad = false;
+  nuevaEspecialidad = '';
 
   form!: FormGroup;
   fotos: File[] = [];
@@ -40,7 +60,7 @@ export class Usuarios implements OnInit {
       dni: ['', [Validators.required, Validators.minLength(7)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      perfil: ['admin', Validators.required],
+      perfil: ['', Validators.required],
       especialidad: [''],
       obra_social: [''],
     });
@@ -68,10 +88,33 @@ export class Usuarios implements OnInit {
     }
   }
 
+  irA(vista: 'tabla' | 'tipo' | 'form') {
+    this.vista = vista;
+  }
+
+  seleccionarTipo(tipo: 'admin' | 'especialista' | 'paciente') {
+    this.tipoSeleccionado = tipo;
+    this.form.patchValue({ perfil: tipo });
+    this.irA('form');
+  }
+
+  volverAlInicio() {
+    this.vista = 'tabla';
+    this.tipoSeleccionado = null;
+    this.form.reset();
+    this.fotos = [];
+  }
+
+  volverASeleccion() {
+    this.vista = 'tipo';
+    this.tipoSeleccionado = null;
+    this.form.reset();
+    this.fotos = [];
+  }
+
   async toggleAprobado(usuario: any) {
     const nuevoEstado = !usuario.aprobado;
     const accion = nuevoEstado ? 'aprobar' : 'inhabilitar';
-
     if (!confirm(`¿Seguro que querés ${accion} a ${usuario.nombre} ${usuario.apellido}?`)) return;
 
     try {
@@ -79,7 +122,6 @@ export class Usuarios implements OnInit {
         .from('usuarios')
         .update({ aprobado: nuevoEstado })
         .eq('id', usuario.id);
-
       if (error) throw error;
 
       usuario.aprobado = nuevoEstado;
@@ -94,23 +136,64 @@ export class Usuarios implements OnInit {
   }
 
   async eliminarUsuario(usuario: any) {
-    if (!confirm(`¿Seguro que querés eliminar al usuario ${usuario.nombre}?`)) return;
+  if (!confirm(`¿Seguro que querés eliminar al usuario ${usuario.nombre}?`)) return;
 
-    try {
-      if (usuario.perfil === 'paciente') {
-        await supabase.from('pacientes').delete().eq('id', usuario.id);
-      } else if (usuario.perfil === 'especialista') {
-        await supabase.from('especialistas').delete().eq('id', usuario.id);
+  try {
+    if (usuario.perfil === 'paciente') {
+      await supabase.from('pacientes').delete().eq('id', usuario.id);
+    } else if (usuario.perfil === 'especialista') {
+      await supabase.from('especialistas').delete().eq('id', usuario.id);
+    }
+
+    await supabase.from('usuarios').delete().eq('id', usuario.id);
+
+    await fetch('https://ubeppzmaerryzknxqjso.supabase.co/functions/v1/delete-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: usuario.id }),
+    });
+
+    this.toast.show('Usuario eliminado correctamente.', 'success');
+    this.usuarios = this.usuarios.filter(u => u.id !== usuario.id);
+  } catch (err) {
+    console.error(err);
+    this.toast.show('Error al eliminar usuario.', 'error');
+  }
+}
+
+
+  scrollCarrusel(direccion: 'izquierda' | 'derecha') {
+    const carrusel = document.querySelector('.carrusel');
+    if (!carrusel) return;
+    const scrollAmount = 150;
+    carrusel.scrollBy({
+      left: direccion === 'derecha' ? scrollAmount : -scrollAmount,
+      behavior: 'smooth',
+    });
+  }
+
+  toggleEspecialidad(nombre: string) {
+    if (nombre === 'Otra') {
+      this.mostrarOtraEspecialidad = !this.mostrarOtraEspecialidad;
+
+      if (this.mostrarOtraEspecialidad) {
+        if (!this.especialidadesSeleccionadas.includes('Otra')) {
+          this.especialidadesSeleccionadas.push('Otra');
+        }
+      } else {
+        this.especialidadesSeleccionadas = this.especialidadesSeleccionadas.filter(
+          (esp) => esp !== 'Otra'
+        );
+        this.nuevaEspecialidad = '';
       }
+      return;
+    }
 
-      const { error } = await supabase.from('usuarios').delete().eq('id', usuario.id);
-      if (error) throw error;
-
-      this.usuarios = this.usuarios.filter((u) => u.id !== usuario.id);
-      this.toast.show('Usuario eliminado correctamente.', 'success');
-    } catch (err) {
-      console.error(err);
-      this.toast.show('Error al eliminar usuario.', 'error');
+    const index = this.especialidadesSeleccionadas.indexOf(nombre);
+    if (index >= 0) {
+      this.especialidadesSeleccionadas.splice(index, 1);
+    } else {
+      this.especialidadesSeleccionadas.push(nombre);
     }
   }
 
@@ -138,6 +221,29 @@ export class Usuarios implements OnInit {
     if (perfil === 'especialista' && this.fotos.length !== 1) {
       this.toast.show('El especialista debe tener una imagen.', 'error');
       return;
+    }
+
+    let especialidadesFinal: string[] = [];
+    if (perfil === 'especialista') {
+      let seleccionadas = this.especialidadesSeleccionadas.filter(
+        (esp) => esp !== 'Otra'
+      );
+
+      if (this.mostrarOtraEspecialidad && this.nuevaEspecialidad.trim()) {
+        const adicionales = this.nuevaEspecialidad
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s);
+        seleccionadas.push(...adicionales);
+      }
+
+      if (seleccionadas.length === 0) {
+        this.toast.show('Debe seleccionar al menos una especialidad.', 'error');
+        return;
+      }
+
+      especialidadesFinal = seleccionadas;
+
     }
 
     this.loading = true;
@@ -171,24 +277,21 @@ export class Usuarios implements OnInit {
       if (usuarioErr) throw usuarioErr;
 
       if (perfil === 'paciente') {
-        const { error } = await supabase.from('pacientes').insert({
+        await supabase.from('pacientes').insert({
           id: userId,
           obra_social: obra_social?.trim() ?? '',
           fotos_url: fotoUrls,
         });
-        if (error) throw error;
       } else if (perfil === 'especialista') {
-        const { error } = await supabase.from('especialistas').insert({
-          id: userId,
-          especialidad: especialidad?.trim() ?? '',
-          foto_url: fotoUrls[0] ?? null,
-        });
-        if (error) throw error;
+          await supabase.from('especialistas').insert({
+            id: userId,
+            especialidad: especialidadesFinal,
+            foto_url: fotoUrls[0] ?? null,
+          });
       }
 
       this.toast.show('Usuario creado correctamente.', 'success');
-      this.form.reset({ perfil: 'admin' });
-      this.fotos = [];
+      this.volverAlInicio();
       this.cargarUsuarios();
     } catch (err: any) {
       console.error(err);
@@ -203,9 +306,7 @@ export class Usuarios implements OnInit {
     try {
       await this.auth.signOut();
       this.toast.show('Sesión cerrada correctamente.', 'success');
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 1200);
+      setTimeout(() => this.router.navigate(['/login']), 1200);
     } catch (err) {
       console.error(err);
       this.toast.show('Error al cerrar sesión.', 'error');

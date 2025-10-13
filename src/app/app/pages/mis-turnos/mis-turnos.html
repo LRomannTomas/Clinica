@@ -1,0 +1,40 @@
+<section class="mis-turnos">
+  <h2>Mis Turnos</h2>
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div class="filtros">
+    <div class="tipo-filtro">
+      <button [class.active]="tipoFiltro === 'especialidad'" (click)="tipoFiltro = 'especialidad'">Filtrar por Especialidad</button>
+      <button [class.active]="tipoFiltro === 'especialista'" (click)="tipoFiltro = 'especialista'">Filtrar por Especialista</button>
+    </div>
+
+    <input
+      type="text"
+      placeholder="Escriba para filtrar..."
+      [(ngModel)]="filtro"
+      (input)="aplicarFiltro()"
+    />
+  </div>
+
+  <div class="lista-turnos" *ngIf="!loading && turnosFiltrados.length > 0; else vacio">
+    <div class="turno" *ngFor="let t of turnosFiltrados">
+      <div class="info">
+        <p><strong>Especialidad:</strong> {{ t.especialidad }}</p>
+        <p><strong>Especialista:</strong> {{ t.especialista?.nombre }} {{ t.especialista?.apellido }}</p>
+        <p><strong>Fecha:</strong> {{ t.fecha | date:'dd/MM/yyyy' }} {{ t.hora }}</p>
+        <p><strong>Estado:</strong> <span class="estado {{t.estado}}">{{ t.estado | titlecase }}</span></p>
+      </div>
+
+      <div class="acciones">
+        <button *ngIf="puedeCancelar(t)" (click)="cancelarTurno(t)" class="cancelar">Cancelar</button>
+        <button *ngIf="puedeVerReseña(t)" (click)="toast.show('Reseña: ' + t.detalles_turno.find((d:any)=>d.tipo==='finalizacion')?.comentario, 'info')">Ver Reseña</button>
+        <button *ngIf="puedeCompletarEncuesta(t)" (click)="completarEncuesta(t)" class="encuesta">Completar Encuesta</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #vacio>
+    <p>No se encontraron turnos.</p>
+  </ng-template>
+</section>
