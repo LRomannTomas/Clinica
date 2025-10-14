@@ -144,5 +144,5 @@ La aplicación cuenta con un encabezado común (`HeaderPropio` / `Navbar`) que s
 
 1. Clonar el repositorio  
    ```bash
-   git clone https://github.com/LRomannTomas/clinica-online.git
+   git clone https://github.com/LRomannTomas/clinica.git
    cd clinica-online
