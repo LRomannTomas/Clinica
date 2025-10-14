@@ -116,64 +116,106 @@ export class SolicitarTurno implements OnInit {
   }
 
   generarFechasDisponibles() {
-    const hoy = new Date();
-    this.fechasDisponibles = [];
+  const hoy = new Date();
+  this.fechasDisponibles = [];
 
-    const diasActivos = this.horariosEspecialista.map((h) => h.dia_semana.toLowerCase());
+  const diasSemana = [
+    'domingo',
+    'lunes',
+    'martes',
+    'miércoles',
+    'jueves',
+    'viernes',
+    'sábado',
+  ];
 
-    for (let i = 0; i < 15; i++) {
-      const fecha = new Date();
-      fecha.setDate(hoy.getDate() + i);
+  const normalizar = (txt: string) =>
+    txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-      const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
+  const diasActivos = this.horariosEspecialista.map((h) =>
+    normalizar(h.dia_semana)
+  );
 
-      if (diasActivos.includes(diaSemana)) {
-        this.fechasDisponibles.push(fecha.toISOString().split('T')[0]);
-      }
+  for (let i = 0; i < 15; i++) {
+    const fecha = new Date();
+    fecha.setDate(hoy.getDate() + i);
+
+    const diaSemana = diasSemana[fecha.getDay()]; 
+    const diaNormalizado = normalizar(diaSemana);
+
+    if (diasActivos.includes(diaNormalizado)) {
+      const yyyy = fecha.getFullYear();
+      const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+      const dd = String(fecha.getDate()).padStart(2, '0');
+      const fechaStr = `${yyyy}-${mm}-${dd}`;
+      this.fechasDisponibles.push(fechaStr);
     }
   }
+
+  console.log('Fechas disponibles generadas:', this.fechasDisponibles);
+}
+
+
   async cargarHorariosDisponibles() {
-    if (!this.fechaSeleccionada || !this.horariosEspecialista.length) return;
+  if (!this.fechaSeleccionada || !this.horariosEspecialista.length) return;
 
-    const fecha = new Date(this.fechaSeleccionada);
-    const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
+  const [year, month, day] = this.fechaSeleccionada.split('-').map(Number);
+  const fecha = new Date(year, month - 1, day);
 
-    const horario = this.horariosEspecialista.find((h) => h.dia_semana.toLowerCase() === diaSemana);
-    if (!horario) {
-      this.horariosDisponibles = [];
-      return;
-    }
+  const diasSemana = [
+    'domingo',
+    'lunes',
+    'martes',
+    'miércoles',
+    'jueves',
+    'viernes',
+    'sábado'
+  ];
 
-    const [horaIniH, horaIniM] = horario.hora_inicio.split(':').map(Number);
-    const [horaFinH, horaFinM] = horario.hora_fin.split(':').map(Number);
+  const diaSemana = diasSemana[fecha.getDay()].toLowerCase();
 
-    const inicio = new Date(0, 0, 0, horaIniH, horaIniM);
-    const fin = new Date(0, 0, 0, horaFinH, horaFinM);
+  const horario = this.horariosEspecialista.find(
+    (h) => h.dia_semana.trim().toLowerCase() === diaSemana
+  );
 
-    const horarios: string[] = [];
-    for (let h = new Date(inicio); h < fin; h.setMinutes(h.getMinutes() + 30)) {
-      const hh = h.getHours().toString().padStart(2, '0');
-      const mm = h.getMinutes().toString().padStart(2, '0');
-      horarios.push(`${hh}:${mm}`);
-    }
-
-    const { data: turnosOcupados, error } = await supabase
-      .from('turnos')
-      .select('hora')
-      .eq('especialista_id', this.especialistaSeleccionado.id)
-      .eq('fecha', this.fechaSeleccionada)
-      .not('estado', 'in', '(cancelado,rechazado)');
-
-    if (error) {
-      console.error(error);
-      this.toast.show('Error al cargar los turnos ocupados', 'error');
-      return;
-    }
-
-    const horasOcupadas = turnosOcupados?.map((t) => t.hora.slice(0, 5)) ?? [];
-
-    this.horariosDisponibles = horarios.filter((h) => !horasOcupadas.includes(h));
+  if (!horario) {
+    this.horariosDisponibles = [];
+    this.toast.show('No hay horarios disponibles para esta fecha.', 'info');
+    return;
   }
+
+  const [horaIniH, horaIniM] = horario.hora_inicio.split(':').map(Number);
+  const [horaFinH, horaFinM] = horario.hora_fin.split(':').map(Number);
+
+  const inicio = new Date(0, 0, 0, horaIniH, horaIniM);
+  const fin = new Date(0, 0, 0, horaFinH, horaFinM);
+
+  const horarios: string[] = [];
+  for (let h = new Date(inicio); h < fin; h.setMinutes(h.getMinutes() + 30)) {
+    const hh = h.getHours().toString().padStart(2, '0');
+    const mm = h.getMinutes().toString().padStart(2, '0');
+    horarios.push(`${hh}:${mm}`);
+  }
+
+  const { data: turnosOcupados, error } = await supabase
+    .from('turnos')
+    .select('hora')
+    .eq('especialista_id', this.especialistaSeleccionado.id)
+    .eq('fecha', this.fechaSeleccionada)
+    .not('estado', 'in', '(cancelado,rechazado)');
+
+  if (error) {
+    console.error(error);
+    this.toast.show('Error al cargar los turnos ocupados', 'error');
+    return;
+  }
+
+  const horasOcupadas = turnosOcupados?.map((t) => t.hora.slice(0, 5)) ?? [];
+  this.horariosDisponibles = horarios.filter((h) => !horasOcupadas.includes(h));
+
+  console.log('Horarios disponibles:', this.horariosDisponibles);
+}
+
 
   async cargarPacientes() {
     const { data, error } = await supabase
@@ -231,13 +273,17 @@ export class SolicitarTurno implements OnInit {
   }
 
   formatearFecha(fecha: string): string {
-    const opciones: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      day: '2-digit',
-      month: '2-digit',
-    };
-    return new Date(fecha)
-      .toLocaleDateString('es-ES', opciones)
-      .replace(/^\w/, (c) => c.toUpperCase());
-  }
+  const [year, month, day] = fecha.split('-').map(Number);
+  const fechaLocal = new Date(year, month - 1, day);
+  const opciones: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+  };
+
+  return fechaLocal
+    .toLocaleDateString('es-ES', opciones)
+    .replace(/^\w/, (c) => c.toUpperCase());
+}
+
 }
