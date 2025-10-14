@@ -1,6 +1,5 @@
 <app-navbar></app-navbar>
 
-<!-- 🔹 Captcha emergente -->
 <div class="captcha-overlay" *ngIf="mostrarCaptcha">
   <div class="captcha-card">
     <h3>Verificación de seguridad</h3>
@@ -11,7 +10,6 @@
 
 <section class="registro-clinica">
   <div class="contenedor">
-    <!-- 🔹 Selección de tipo -->
     <div *ngIf="!tipoSeleccionado" class="seleccion-tipo">
       <h2>Registrarse como...</h2>
       <div class="botones-tipo">
@@ -26,7 +24,6 @@
       </div>
     </div>
 
-    <!-- 🔹 Formulario paciente -->
     <form
       *ngIf="tipoSeleccionado === 'paciente'"
       [formGroup]="formPaciente"
@@ -54,7 +51,6 @@
       </button>
     </form>
 
-    <!-- 🔹 Especialista: Paso 1 -->
     <form
       *ngIf="tipoSeleccionado === 'especialista' && pasoEspecialista === 1"
       [formGroup]="formEspecialista"
@@ -79,7 +75,6 @@
       <button type="submit">Siguiente</button>
     </form>
 
-    <!-- 🔹 Especialista: Paso 2 -->
     <div
       *ngIf="tipoSeleccionado === 'especialista' && pasoEspecialista === 2"
       class="paso-especialidades"

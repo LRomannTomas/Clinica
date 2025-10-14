@@ -2,7 +2,6 @@
 <section class="mis-turnos">
   <h2>Mis Turnos</h2>
 
-  <!-- 🔍 Filtros -->
   <div class="filtros">
     <input
       type="text"
@@ -11,10 +10,9 @@
       (input)="aplicarFiltro()"
     />
     </div>
-  <!-- ⏳ Loading -->
+
   <app-loading *ngIf="loading"></app-loading>
 
-  <!-- 📋 Lista de turnos -->
   <div class="lista-turnos" *ngIf="!loading && filtrado.length > 0; else sinTurnos">
     <div *ngFor="let t of filtrado" class="turno">
       <div class="info">
@@ -25,7 +23,6 @@
         <p><strong>Estado:</strong> <span class="estado {{ t.estado }}">{{ t.estado | titlecase }}</span></p>
       </div>
 
-      <!-- 🧭 Acciones -->
       <div class="acciones">
         <button
           *ngIf="puedeCancelar(t)"
@@ -62,12 +59,10 @@
     </div>
   </div>
 
-  <!-- 💤 Sin turnos -->
   <ng-template #sinTurnos>
     <p style="text-align: center; color: #888;">No hay turnos registrados.</p>
   </ng-template>
 
-  <!-- 🩺 Modal Reseña -->
   <div class="modal-overlay" *ngIf="mostrarModalResena">
     <div class="modal-contenido">
       <h3>🩺 Reseña del Turno</h3>
@@ -92,7 +87,6 @@
     </div>
   </div>
 
-  <!-- 📝 Modal Comentarios (Cancelar / Encuesta / Calificar) -->
   <div class="modal-overlay" *ngIf="mostrarModalAccion">
     <div class="modal-contenido">
       <h3>{{ accionPendiente | titlecase }}</h3>

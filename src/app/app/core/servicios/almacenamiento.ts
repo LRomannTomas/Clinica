@@ -10,7 +10,6 @@ export class Almacenamiento {
     userId: string,
     nombreArchivo: string
   ): Promise<string | null> {
-    // El bucket cambia según el rol
     const bucket = rol === 'paciente' ? 'pacientes' : 'especialistas';
     const ruta = `${userId}/${nombreArchivo}`;
 
@@ -26,7 +25,6 @@ export class Almacenamiento {
       return null;
     }
 
-    // Generar URL pública
     return this.getUrlPublica(bucket, ruta);
   }
 

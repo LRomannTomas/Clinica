@@ -1,75 +1,113 @@
 <app-HeaderPropio></app-HeaderPropio>
 
 <section class="solicitar-turno">
-  <h2>Solicitar Turno</h2>
+  <div class="contenedor-turno">
+    <h2>🩺 Solicitar Turno</h2>
 
-  <!-- 🔹 Especialidad -->
-  <div class="bloque">
-    <h3>1️⃣ Seleccione una especialidad</h3>
-    <div class="lista">
-      <button 
-        *ngFor="let e of especialidades" 
-        [class.seleccionado]="especialidadSeleccionada === e"
-        (click)="especialidadSeleccionada = e; cargarEspecialistas()">
-        {{ e }}
-      </button>
+    <div *ngIf="!especialidadSeleccionada" class="paso fade-in">
+      <h3>Seleccioná una especialidad</h3>
+      <div class="lista">
+        <button
+          *ngFor="let e of especialidades"
+          (click)="especialidadSeleccionada = e; cargarEspecialistas()"
+          class="btn-opcion"
+        >
+          {{ e }}
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- 🔹 Especialista -->
-  <div *ngIf="especialistas.length > 0" class="bloque">
-    <h3>2️⃣ Seleccione un especialista</h3>
-    <div class="lista">
-      <button 
-        *ngFor="let esp of especialistas"
-        [class.seleccionado]="especialistaSeleccionado?.id === esp.id"
-        (click)="seleccionarEspecialista(esp)">
-        {{ esp.usuarios?.nombre }} {{ esp.usuarios?.apellido }}
-      </button>
+    <div *ngIf="especialidadSeleccionada && !especialistaSeleccionado" class="paso fade-in">
+      <button class="btn-volver" (click)="resetearFormulario()">← Volver</button>
+      <h3>Seleccioná un especialista</h3>
+      <div class="lista">
+        <div
+          *ngFor="let esp of especialistas"
+          class="card-opcion"
+          [class.seleccionado]="especialistaSeleccionado?.id === esp.id"
+          (click)="seleccionarEspecialista(esp)"
+        >
+          <img *ngIf="esp.foto_url" [src]="esp.foto_url" alt="Foto especialista" />
+          <span>{{ esp.usuarios?.nombre }} {{ esp.usuarios?.apellido }}</span>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- 🔹 Fecha -->
-  <div *ngIf="especialistaSeleccionado" class="bloque">
-    <h3>3️⃣ Seleccione una fecha (próximos 15 días)</h3>
-    <div class="lista">
+    <div *ngIf="especialistaSeleccionado && !fechaSeleccionada" class="paso fade-in">
+      <button class="btn-volver" (click)="especialistaSeleccionado = null">← Volver</button>
+      <h3>Seleccioná una fecha (próximos 15 días)</h3>
+
+      <div class="lista" *ngIf="fechasDisponibles.length > 0; else sinFechas">
+        <button
+          *ngFor="let f of fechasDisponibles"
+          class="btn-opcion"
+          [class.seleccionado]="fechaSeleccionada === f"
+          (click)="fechaSeleccionada = f; cargarHorariosDisponibles()"
+        >
+          {{ formatearFecha(f) }}
+        </button>
+      </div>
+
+      <ng-template #sinFechas>
+        <div class="mensaje-vacio">
+          <p>📅 No hay fechas disponibles para este especialista en los próximos días.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <div *ngIf="fechaSeleccionada && !horaSeleccionada" class="paso fade-in">
+      <button class="btn-volver" (click)="fechaSeleccionada = ''">← Volver</button>
+      <h3>Seleccioná un horario disponible</h3>
+
+      <div class="lista" *ngIf="horariosDisponibles.length > 0; else sinHorarios">
+        <button
+          *ngFor="let h of horariosDisponibles"
+          class="btn-opcion"
+          [class.seleccionado]="horaSeleccionada === h"
+          (click)="horaSeleccionada = h"
+        >
+          {{ h }}
+        </button>
+      </div>
+
+      <ng-template #sinHorarios>
+        <div class="mensaje-vacio">
+          <p>⏰ No hay horarios disponibles para la fecha seleccionada.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <div *ngIf="horaSeleccionada && esAdmin && !pacienteSeleccionado" class="paso fade-in">
+      <button class="btn-volver" (click)="horaSeleccionada = ''">← Volver</button>
+      <h3>Seleccioná un paciente</h3>
+      <div class="lista">
+        <button
+          *ngFor="let p of pacientes"
+          class="btn-opcion"
+          [class.seleccionado]="pacienteSeleccionado === p.id"
+          (click)="pacienteSeleccionado = p.id"
+        >
+          {{ p.nombre }} {{ p.apellido }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="horaSeleccionada && (!esAdmin || pacienteSeleccionado)" class="paso fade-in">
       <button
-        *ngFor="let f of fechasDisponibles"
-        [class.seleccionado]="fechaSeleccionada === f"
-        (click)="fechaSeleccionada = f; cargarHorariosDisponibles()">
-        {{ formatearFecha(f) }}
+        class="btn-volver"
+        (click)="esAdmin ? (pacienteSeleccionado = null) : (horaSeleccionada = '')"
+      >
+        ← Volver
       </button>
+      <h3>Confirmar turno</h3>
+      <p class="resumen">
+        <strong>Especialidad:</strong> {{ especialidadSeleccionada }} <br />
+        <strong>Especialista:</strong> {{ especialistaSeleccionado?.usuarios?.nombre }}
+        {{ especialistaSeleccionado?.usuarios?.apellido }} <br />
+        <strong>Fecha:</strong> {{ formatearFecha(fechaSeleccionada) }} <br />
+        <strong>Hora:</strong> {{ horaSeleccionada }}
+      </p>
+      <button class="btn-confirmar" (click)="confirmarTurno()">Confirmar Turno</button>
     </div>
-  </div>
-
-  <!-- 🔹 Horario -->
-  <div *ngIf="fechaSeleccionada" class="bloque">
-    <h3>4️⃣ Seleccione un horario</h3>
-    <div class="lista">
-      <button
-        *ngFor="let h of horariosDisponibles"
-        [class.seleccionado]="horaSeleccionada === h"
-        (click)="horaSeleccionada = h">
-        {{ h }}
-      </button>
-    </div>
-  </div>
-
-  <!-- 🔹 Paciente (solo admin) -->
-  <div *ngIf="esAdmin" class="bloque">
-    <h3>5️⃣ Seleccione el paciente</h3>
-    <div class="lista">
-      <button
-        *ngFor="let p of pacientes"
-        [class.seleccionado]="pacienteSeleccionado === p.id"
-        (click)="pacienteSeleccionado = p.id">
-        {{ p.nombre }} {{ p.apellido }}
-      </button>
-    </div>
-  </div>
-
-  <!-- 🔹 Confirmar -->
-  <div *ngIf="horaSeleccionada" class="bloque">
-    <button class="confirmar-btn" (click)="confirmarTurno()">Confirmar Turno</button>
   </div>
 </section>
