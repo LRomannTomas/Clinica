@@ -1,0 +1,191 @@
+.perfil {
+  max-width: 750px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  text-align: center;
+
+  h2 {
+    color: #264653;
+    margin-bottom: 1.5rem;
+  }
+
+  .datos {
+    margin-bottom: 2rem;
+
+    .foto {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid #2a9d8f;
+      object-fit: cover;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      margin: 0.3rem 0;
+      font-size: 1.1rem;
+    }
+  }
+
+  .wizard {
+    .bloque {
+      animation: aparecer 0.4s ease-in-out;
+      margin-top: 1.5rem;
+
+      h3 {
+        color: #2a9d8f;
+        margin-bottom: 1rem;
+      }
+
+      .botonera {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem; 
+
+
+        button {
+          width: 160px;
+          height: 60px;
+          background: #f4f4f4;
+          border: 2px solid transparent;
+          border-radius: 10px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+          &:hover {
+            background: #e9ecef;
+          }
+
+          &.seleccionado {
+            background: #2a9d8f;
+            color: #fff;
+            border-color: #21867a;
+            font-weight: bold;
+          }
+        }
+      }
+
+      .inputs {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+
+        div {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+
+          label {
+            font-weight: 500;
+            color: #264653;
+          }
+
+          input {
+            margin-top: 0.3rem;
+            padding: 0.4rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+          }
+        }
+      }
+
+      .navegacion {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .btn-continuar,
+      .btn-volver {
+        padding: 0.7rem 1.8rem;
+        border-radius: 10px;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 1.5rem; 
+      }
+
+      .btn-continuar {
+        background: #2a9d8f;
+        color: white;
+
+        &:hover:not(:disabled) {
+          background: #21867a;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
+      .btn-volver {
+        background: #e76f51;
+        color: white;
+
+        &:hover {
+          background: #c44b32;
+        }
+      }
+
+      .tarjeta-horario {
+        background: #f9f9f9;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        p {
+          margin: 0.3rem 0;
+        }
+
+        .activo {
+          color: #2a9d8f;
+          font-weight: bold;
+        }
+
+        button {
+          background: #e9c46a;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 500;
+
+          &:hover {
+            background: #d8ad4a;
+          }
+        }
+      }
+
+      .sin-horarios {
+        color: #888;
+        font-style: italic;
+        margin-top: 1rem;
+      }
+    }
+  }
+
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

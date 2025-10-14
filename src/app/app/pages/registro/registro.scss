@@ -482,6 +482,52 @@ button:disabled {
   opacity: 0.8;
 }
 
+.captcha-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.captcha-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.captcha-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+
+  h3 {
+    margin-bottom: 1rem;
+    color: #264653;
+  }
+
+  .btn-cancelar {
+    margin-top: 1rem;
+    background: #e76f51;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background: #d45a3f;
+    }
+  }
+}
+
 
 
 

@@ -1,0 +1,100 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+<section class="perfil">
+  <h2>Mi Perfil</h2>
+
+  <div class="datos">
+    <img *ngIf="fotoUrl" [src]="fotoUrl" class="foto" />
+    <p><strong>{{ user?.nombre }} {{ user?.apellido }}</strong></p>
+    <p>{{ perfil | titlecase }}</p>
+  </div>
+
+  <div *ngIf="perfil === 'especialista'" class="wizard">
+    <div *ngIf="paso === 1" class="bloque animar">
+      <h3>Seleccioná una especialidad</h3>
+      <div class="botonera">
+        <button
+          *ngFor="let e of especialidades"
+          (click)="nuevo.especialidad = e"
+          [class.seleccionado]="nuevo.especialidad === e">
+          {{ e }}
+        </button>
+      </div>
+      <button 
+        class="btn-continuar" 
+        [disabled]="!nuevo.especialidad" 
+        (click)="paso = 2">
+        Continuar
+      </button>
+    </div>
+
+    <div *ngIf="paso === 2" class="bloque animar">
+      <h3>Seleccioná un día de la semana</h3>
+      <div class="botonera">
+        <button
+          *ngFor="let d of dias"
+          (click)="nuevo.dia_semana = d"
+          [class.seleccionado]="nuevo.dia_semana === d">
+          {{ d | titlecase }}
+        </button>
+      </div>
+      <div class="navegacion">
+        <button class="btn-volver" (click)="paso = 1">Volver</button>
+        <button 
+          class="btn-continuar" 
+          [disabled]="!nuevo.dia_semana" 
+          (click)="paso = 3">
+          Continuar
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="paso === 3" class="bloque animar">
+      <h3>Seleccioná el rango horario</h3>
+      <div class="inputs">
+        <div>
+          <label>Desde</label>
+          <input type="time" [(ngModel)]="nuevo.hora_inicio" />
+        </div>
+        <div>
+          <label>Hasta</label>
+          <input type="time" [(ngModel)]="nuevo.hora_fin" />
+        </div>
+      </div>
+      <div class="navegacion">
+        <button class="btn-volver" (click)="paso = 2">Volver</button>
+        <button 
+          class="btn-continuar" 
+          [disabled]="!nuevo.hora_inicio || !nuevo.hora_fin" 
+          (click)="guardarHorario()">
+          Guardar horario
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="paso === 4" class="bloque animar">
+      <h3>Horarios cargados</h3>
+
+      <div *ngIf="horarios.length > 0; else sinHorarios">
+        <div *ngFor="let h of horarios" class="tarjeta-horario">
+          <div class="info">
+            <p><strong>{{ h.especialidad }}</strong></p>
+            <p>{{ h.dia_semana | titlecase }} — {{ h.hora_inicio }} a {{ h.hora_fin }}</p>
+            <p [class.activo]="h.activo">Estado: {{ h.activo ? 'Activo' : 'Inactivo' }}</p>
+          </div>
+          <button (click)="cambiarEstado(h)">
+            {{ h.activo ? 'Desactivar' : 'Activar' }}
+          </button>
+        </div>
+      </div>
+
+      <ng-template #sinHorarios>
+        <p class="sin-horarios">No hay horarios cargados.</p>
+      </ng-template>
+
+      <button class="btn-continuar" (click)="paso = 1">
+        + Agregar otro horario
+      </button>
+    </div>
+  </div>
+</section>

@@ -9,13 +9,22 @@ import { Navbar } from '../../compartido/components/navbar/navbar';
 import { ImageUploader } from '../../compartido/components/image-uploader/image-uploader';
 import { Loading } from '../../compartido/components/loading/loading';
 import { ToastService } from '../../core/servicios/toast';
+import { NgxCaptchaModule } from 'ngx-captcha';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
   templateUrl: './registro.html',
   styleUrls: ['./registro.scss'],
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, Navbar, ImageUploader, Loading],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    Navbar,
+    ImageUploader,
+    Loading,
+    NgxCaptchaModule,
+  ],
 })
 export class Registro implements OnInit {
   tipoSeleccionado: 'paciente' | 'especialista' | null = null;
@@ -33,6 +42,11 @@ export class Registro implements OnInit {
   nuevaEspecialidad = '';
   formPaciente!: FormGroup;
   formEspecialista!: FormGroup;
+
+  mostrarCaptcha: boolean = false;
+  accionPendiente: 'paciente' | 'especialista' | null = null;
+  siteKey: string = '6Le9gukrAAAAAHGSDDkvch_QMx6Dh8xinhPLIfoC';
+  captchaResponse: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -113,7 +127,17 @@ export class Registro implements OnInit {
     });
   }
 
-  async registrarEspecialista() {
+  prepararRegistroPaciente() {
+    this.formPaciente.markAllAsTouched();
+    if (this.formPaciente.invalid || this.fotos.length !== 2) {
+      this.toast.show('Complete todos los campos y suba 2 imágenes.', 'error');
+      return;
+    }
+    this.mostrarCaptcha = true;
+    this.accionPendiente = 'paciente';
+  }
+
+  prepararRegistroEspecialista() {
     if (
       this.especialidadesSeleccionadas.length === 0 &&
       (!this.mostrarOtraEspecialidad || !this.nuevaEspecialidad.trim())
@@ -121,7 +145,29 @@ export class Registro implements OnInit {
       this.toast.show('Seleccione al menos una especialidad.', 'error');
       return;
     }
+    this.mostrarCaptcha = true;
+    this.accionPendiente = 'especialista';
+  }
 
+  onCaptchaResolved(token: string) {
+  if (token) {
+    this.captchaResponse = token;
+    console.log('✅ Captcha verificado correctamente:', token);
+    this.mostrarCaptcha = false;
+    if (this.accionPendiente === 'paciente') {
+      this.registrarPacienteFinal();
+    } else if (this.accionPendiente === 'especialista') {
+      this.registrarEspecialistaFinal();
+    }
+
+    this.accionPendiente = null;
+  } else {
+    console.warn('⚠️ Captcha no válido o cancelado');
+  }
+}
+
+
+  async registrarEspecialistaFinal() {
     this.loading = true;
     try {
       const email = this.formEspecialista.get('email')?.value.trim();
@@ -130,13 +176,15 @@ export class Registro implements OnInit {
       if (signUpErr) throw signUpErr;
 
       const userId = signUpData.user?.id ?? crypto.randomUUID();
-      const fotoUrl = await this.almacenamiento.subirImagen(this.fotos[0], 'especialista', userId, 'perfil.png');
-
+      const fotoUrl = await this.almacenamiento.subirImagen(
+        this.fotos[0],
+        'especialista',
+        userId,
+        'perfil.png'
+      );
 
       let otrasEspecialidades: string[] = [];
-
       if (this.mostrarOtraEspecialidad && this.nuevaEspecialidad.trim()) {
-        
         otrasEspecialidades = this.nuevaEspecialidad
           .split(/[,;]+/)
           .map((esp) => esp.trim())
@@ -147,7 +195,6 @@ export class Registro implements OnInit {
         ...this.especialidadesSeleccionadas,
         ...otrasEspecialidades,
       ];
-
 
       const { error: usuarioErr } = await supabase.from('usuarios').insert({
         id: userId,
@@ -163,7 +210,7 @@ export class Registro implements OnInit {
 
       const { error: especialistaErr } = await supabase.from('especialistas').insert({
         id: userId,
-        especialidad: especialidadesFinal, 
+        especialidad: especialidadesFinal,
         foto_url: fotoUrl,
       });
       if (especialistaErr) throw especialistaErr;
@@ -179,13 +226,7 @@ export class Registro implements OnInit {
     }
   }
 
-  async registrarPaciente() {
-    this.formPaciente.markAllAsTouched();
-    if (this.formPaciente.invalid || this.fotos.length !== 2) {
-      this.toast.show('Complete todos los campos y suba 2 imágenes.', 'error');
-      return;
-    }
-
+  async registrarPacienteFinal() {
     this.loading = true;
     try {
       const email = this.formPaciente.get('email')?.value.trim();
@@ -196,7 +237,12 @@ export class Registro implements OnInit {
       const userId = signUpData.user?.id ?? crypto.randomUUID();
       const fotoUrls: string[] = [];
       for (let i = 0; i < this.fotos.length; i++) {
-        const url = await this.almacenamiento.subirImagen(this.fotos[i], 'paciente', userId, `foto${i + 1}.png`);
+        const url = await this.almacenamiento.subirImagen(
+          this.fotos[i],
+          'paciente',
+          userId,
+          `foto${i + 1}.png`
+        );
         if (url) fotoUrls.push(url);
       }
 

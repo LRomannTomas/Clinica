@@ -94,3 +94,122 @@
     }
   }
 }
+
+/* 🌙 Modal Overlay (fondo difuminado y centrado) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 📦 Contenido del modal */
+.modal-contenido {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+
+  h3 {
+    margin-bottom: 1rem;
+    color: #006064;
+  }
+
+  .turno-info {
+    background: #e0f2f1;
+    padding: 0.8rem;
+    border-radius: 8px;
+    text-align: left;
+    margin-bottom: 1rem;
+  }
+
+  .comentarios {
+    max-height: 250px;
+    overflow-y: auto;
+    text-align: left;
+
+    .comentario {
+      background: #fafafa;
+      border-left: 4px solid #0097a7;
+      border-radius: 6px;
+      padding: 0.8rem;
+      margin-bottom: 0.6rem;
+
+      .tipo {
+        font-weight: bold;
+        color: #0097a7;
+      }
+
+      p {
+        margin: 0.3rem 0;
+      }
+
+      small {
+        color: #666;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  textarea {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 0.6rem;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 1rem;
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .confirmar-btn {
+    background: #2a9d8f;
+    border: none;
+    color: white;
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    &:hover {
+      background: #21867a;
+    }
+  }
+
+  .cerrar-btn {
+    background: #e76f51;
+    border: none;
+    color: white;
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    &:hover {
+      background: #c44b32;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+

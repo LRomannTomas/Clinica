@@ -1,5 +1,14 @@
 <app-navbar></app-navbar>
 
+<!-- 🔹 Captcha emergente -->
+<div class="captcha-overlay" *ngIf="mostrarCaptcha">
+  <div class="captcha-card">
+    <h3>Verificación de seguridad</h3>
+    <ngx-recaptcha2 [siteKey]="siteKey" (success)="onCaptchaResolved($event)"> </ngx-recaptcha2>
+    <button class="btn-cancelar" (click)="mostrarCaptcha = false">Cancelar</button>
+  </div>
+</div>
+
 <section class="registro-clinica">
   <div class="contenedor">
     <!-- 🔹 Selección de tipo -->
@@ -21,7 +30,7 @@
     <form
       *ngIf="tipoSeleccionado === 'paciente'"
       [formGroup]="formPaciente"
-      (ngSubmit)="registrarPaciente()"
+      (ngSubmit)="prepararRegistroPaciente()"
     >
       <button class="btn-volver" type="button" (click)="volver()">← Volver</button>
       <h2>Registro de Paciente</h2>
@@ -115,11 +124,13 @@
           *ngIf="mostrarOtraEspecialidad"
           [(ngModel)]="nuevaEspecialidad"
           placeholder="(Ejemplo: Gastroenterología, Pediatría)"
-          />
-          <small *ngIf="mostrarOtraEspecialidad" class="info-ayuda">-------------------Podes ingresar más de una, separadas por comas-------------------</small>
+        />
+        <small *ngIf="mostrarOtraEspecialidad" class="info-ayuda">
+          -------------------Podes ingresar más de una, separadas por comas-------------------
+        </small>
       </div>
 
-      <button class="btn-registrarse" type="button" (click)="registrarEspecialista()">
+      <button class="btn-registrarse" type="button" (click)="prepararRegistroEspecialista()">
         Registrarse
       </button>
     </div>

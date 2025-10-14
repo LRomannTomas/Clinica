@@ -1,0 +1,93 @@
+<app-HeaderPropio></app-HeaderPropio>
+<section class="turnos-especialista">
+  <h2>Mis Turnos</h2>
+
+  <input
+    type="text"
+    placeholder="Filtrar por especialidad o paciente..."
+    [(ngModel)]="filtro"
+    (input)="aplicarFiltro()"
+  />
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="!loading && filtrado.length > 0; else sinTurnos">
+    <div *ngFor="let t of filtrado" class="tarjeta-turno">
+      <h3>{{ t.especialidad }}</h3>
+
+      <p><strong>Paciente:</strong> {{ t.usuarios_pacientes?.nombre }} {{ t.usuarios_pacientes?.apellido }}</p>
+      <p><strong>Fecha:</strong> {{ t.fecha | date }}</p>
+      <p><strong>Hora:</strong> {{ t.hora }}</p>
+      <p><strong>Estado:</strong> <span class="estado {{ t.estado }}">{{ t.estado | titlecase }}</span></p>
+
+      <div class="acciones">
+        <button *ngIf="puedeAceptar(t)" (click)="aceptarTurno(t)">
+          Aceptar
+        </button>
+
+        <button *ngIf="puedeCancelar(t)" (click)="abrirModalComentario(t, 'cancelado')">
+          Cancelar
+        </button>
+
+        <button *ngIf="puedeRechazar(t)" (click)="abrirModalComentario(t, 'rechazado')">
+          Rechazar
+        </button>
+
+        <button *ngIf="puedeFinalizar(t)" (click)="abrirModalComentario(t, 'finalizado')">
+          Finalizar
+        </button>
+
+        <button *ngIf="puedeVerResena(t)" (click)="verResena(t)">
+          Ver Reseña
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #sinTurnos>
+    <p class="sin-turnos">No hay turnos asignados.</p>
+  </ng-template>
+
+  <div class="modal-overlay" *ngIf="mostrarModalResena">
+    <div class="modal-contenido">
+      <h3>🩺 Reseña del Turno</h3>
+
+      <p class="turno-info">
+        <strong>Paciente:</strong>
+        {{ turnoSeleccionado?.usuarios_pacientes?.nombre }}
+        {{ turnoSeleccionado?.usuarios_pacientes?.apellido }}<br />
+        <strong>Especialidad:</strong> {{ turnoSeleccionado?.especialidad }}<br />
+        <strong>Fecha:</strong> {{ turnoSeleccionado?.fecha | date }}
+      </p>
+
+      <div class="comentarios">
+        <div *ngFor="let d of detallesSeleccionados" class="comentario">
+          <span class="tipo">{{ d.tipo | titlecase }}</span>
+          <p>{{ d.comentario }}</p>
+          <small>{{ d.creado_en | date: 'short' }}</small>
+        </div>
+      </div>
+
+      <button class="cerrar-btn" (click)="cerrarModalResena()">Cerrar</button>
+    </div>
+  </div>
+
+
+  <div class="modal-overlay" *ngIf="mostrarModalComentario">
+    <div class="modal-contenido">
+      <h3>{{ accionPendiente | titlecase }} Turno</h3>
+      <p>Por favor ingrese un comentario:</p>
+
+      <textarea
+        [(ngModel)]="comentarioAccion"
+        placeholder="Escriba su comentario..."
+        rows="4"
+      ></textarea>
+
+      <div class="modal-buttons">
+        <button class="confirmar-btn" (click)="confirmarAccion()">Confirmar</button>
+        <button class="cerrar-btn" (click)="cerrarModalComentario()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,75 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+<section class="solicitar-turno">
+  <h2>Solicitar Turno</h2>
+
+  <!-- 🔹 Especialidad -->
+  <div class="bloque">
+    <h3>1️⃣ Seleccione una especialidad</h3>
+    <div class="lista">
+      <button 
+        *ngFor="let e of especialidades" 
+        [class.seleccionado]="especialidadSeleccionada === e"
+        (click)="especialidadSeleccionada = e; cargarEspecialistas()">
+        {{ e }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔹 Especialista -->
+  <div *ngIf="especialistas.length > 0" class="bloque">
+    <h3>2️⃣ Seleccione un especialista</h3>
+    <div class="lista">
+      <button 
+        *ngFor="let esp of especialistas"
+        [class.seleccionado]="especialistaSeleccionado?.id === esp.id"
+        (click)="seleccionarEspecialista(esp)">
+        {{ esp.usuarios?.nombre }} {{ esp.usuarios?.apellido }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔹 Fecha -->
+  <div *ngIf="especialistaSeleccionado" class="bloque">
+    <h3>3️⃣ Seleccione una fecha (próximos 15 días)</h3>
+    <div class="lista">
+      <button
+        *ngFor="let f of fechasDisponibles"
+        [class.seleccionado]="fechaSeleccionada === f"
+        (click)="fechaSeleccionada = f; cargarHorariosDisponibles()">
+        {{ formatearFecha(f) }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔹 Horario -->
+  <div *ngIf="fechaSeleccionada" class="bloque">
+    <h3>4️⃣ Seleccione un horario</h3>
+    <div class="lista">
+      <button
+        *ngFor="let h of horariosDisponibles"
+        [class.seleccionado]="horaSeleccionada === h"
+        (click)="horaSeleccionada = h">
+        {{ h }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔹 Paciente (solo admin) -->
+  <div *ngIf="esAdmin" class="bloque">
+    <h3>5️⃣ Seleccione el paciente</h3>
+    <div class="lista">
+      <button
+        *ngFor="let p of pacientes"
+        [class.seleccionado]="pacienteSeleccionado === p.id"
+        (click)="pacienteSeleccionado = p.id">
+        {{ p.nombre }} {{ p.apellido }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔹 Confirmar -->
+  <div *ngIf="horaSeleccionada" class="bloque">
+    <button class="confirmar-btn" (click)="confirmarTurno()">Confirmar Turno</button>
+  </div>
+</section>

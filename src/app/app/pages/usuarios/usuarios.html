@@ -1,7 +1,6 @@
-<button class="logout-btn" (click)="cerrarSesion()">Cerrar sesión</button>
+<app-HeaderPropio></app-HeaderPropio>
 
 <section class="usuarios">
-  <!-- 🧩 VISTA 1: TABLA -->
   <ng-container *ngIf="vista === 'tabla'">
     <h2>Gestión de Usuarios</h2>
     <app-loading *ngIf="loading"></app-loading>

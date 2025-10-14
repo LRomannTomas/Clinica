@@ -25,5 +25,32 @@ export const routes: Routes = [
     loadComponent: () => import('./app/pages/usuarios/usuarios').then((m) => m.Usuarios),
     canActivate: [authGuard, adminGuard],
   },
+  {
+    path: 'mis-turnos',
+    loadComponent: () =>
+      import('./app/pages/mis-turnos/mis-turnos').then((m) => m.MisTurnos),
+    canActivate: [authGuard],
+  },
+  {
+  path: 'mis-turnos-especialista',
+  loadComponent: () =>
+    import('./app/pages/mis-turnos-especialista/mis-turnos-especialista').then((m) => m.MisTurnosEspecialista),
+  canActivate: [authGuard], 
+  },
+  {
+  path: 'turnos-admin',
+  canActivate: [authGuard,adminGuard],
+  loadComponent: () => import('./app/pages/turnos-admin/turnos-admin').then(m => m.TurnosAdmin)
+  },
+  {
+  path: 'solicitar-turno',
+  canActivate: [authGuard],
+  loadComponent: () => import('./app/pages/solicitar-turno/solicitar-turno').then(m => m.SolicitarTurno)
+  },
+  {
+  path: 'mi-perfil',
+  loadComponent: () => import('./app/pages/mi-perfil/mi-perfil').then(m => m.MiPerfil)
+  },
+
   { path: '**', redirectTo: '' },
 ];

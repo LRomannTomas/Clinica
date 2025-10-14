@@ -73,7 +73,6 @@ export class Login implements OnInit {
 
     this.accesos = [...pacientes, ...especialistas, ...admin];
   }
-
   async iniciarSesion() {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
@@ -105,10 +104,19 @@ export class Login implements OnInit {
         return;
       }
 
-      if (perfil.perfil === 'admin') {
-        this.router.navigate(['/usuarios']);
-      } else {
-        this.router.navigate(['/home']);
+      switch (perfil.perfil) {
+        case 'admin':
+          this.router.navigate(['/usuarios']);
+          break;
+
+        case 'paciente':
+          this.router.navigate(['/mis-turnos']);
+          break;
+
+        case 'especialista':
+        default:
+          this.router.navigate(['/mis-turnos-especialista']);
+          break;
       }
 
       this.toast.show('Inicio de sesión exitoso. ¡Bienvenido!', 'success');

@@ -9,25 +9,24 @@ import { Turnos } from '../../core/servicios/turnos';
 import { HeaderPropio } from '../../compartido/components/header/headerPropio';
 
 @Component({
-  selector: 'app-mis-turnos-paciente',
+  selector: 'app-mis-turnos-especialista',
   standalone: true,
-  templateUrl: './mis-turnos.html',
-  styleUrls: ['./mis-turnos.scss'],
+  templateUrl: './mis-turnos-especialista.html',
+  styleUrls: ['./mis-turnos-especialista.scss'],
   imports: [CommonModule, FormsModule, Loading, HeaderPropio],
 })
-export class MisTurnos implements OnInit {
+export class MisTurnosEspecialista implements OnInit {
   turnos: any[] = [];
   filtrado: any[] = [];
   filtro = '';
   loading = false;
-  pacienteId!: string;
-
+  especialistaId!: string;
 
   mostrarModalResena = false;
   detallesSeleccionados: any[] = [];
   turnoSeleccionado: any = null;
 
-  mostrarModalAccion = false;
+  mostrarModalComentario = false;
   accionPendiente = '';
   comentarioAccion = '';
 
@@ -40,14 +39,14 @@ export class MisTurnos implements OnInit {
   async ngOnInit() {
     const user = await this.auth.getUser();
     if (!user) return;
-    this.pacienteId = user.id;
+    this.especialistaId = user.id;
     await this.cargarTurnos();
   }
 
   async cargarTurnos() {
     this.loading = true;
     try {
-      this.turnos = await this.turnosSrv.getTurnosPorPacienteConDetalles(this.pacienteId);
+      this.turnos = await this.turnosSrv.getTurnosPorEspecialistaConDetalles(this.especialistaId);
       this.filtrado = [...this.turnos];
     } catch (err: any) {
       console.error(err);
@@ -62,37 +61,52 @@ export class MisTurnos implements OnInit {
     this.filtrado = this.turnos.filter(
       (t) =>
         t.especialidad.toLowerCase().includes(texto) ||
-        `${t.usuarios_especialistas?.nombre ?? ''} ${t.usuarios_especialistas?.apellido ?? ''}`
+        `${t.usuarios_pacientes?.nombre ?? ''} ${t.usuarios_pacientes?.apellido ?? ''}`
           .toLowerCase()
           .includes(texto)
     );
   }
 
+  puedeAceptar(t: any) {
+    return !['realizado', 'cancelado', 'rechazado'].includes(t.estado);
+  }
+
   puedeCancelar(t: any) {
-    return !['realizado', 'cancelado'].includes(t.estado);
+    return !['aceptado', 'realizado', 'rechazado'].includes(t.estado);
+  }
+
+  puedeRechazar(t: any) {
+    return !['aceptado', 'realizado', 'cancelado'].includes(t.estado);
+  }
+
+  puedeFinalizar(t: any) {
+    return t.estado === 'aceptado';
   }
 
   puedeVerResena(t: any) {
     return t.detalles_turno?.some((d: any) => d.tipo === 'finalizado');
   }
 
-  puedeCompletarEncuesta(t: any) {
-    return t.estado === 'realizado' && !t.detalles_turno?.some((d: any) => d.tipo === 'encuesta');
+  async aceptarTurno(turno: any) {
+    try {
+      await this.turnosSrv.actualizarEstado(turno.id, 'aceptado', undefined, undefined, this.especialistaId);
+      this.toast.show('Turno aceptado correctamente.', 'success');
+      this.cargarTurnos();
+    } catch (err: any) {
+      console.error(err);
+      this.toast.show('Error al aceptar turno.', 'error');
+    }
   }
 
-  puedeCalificar(t: any) {
-    return t.estado === 'realizado' && !t.detalles_turno?.some((d: any) => d.tipo === 'calificacion');
-  }
-
-  abrirModalAccion(turno: any, accion: string) {
+  abrirModalComentario(turno: any, accion: string) {
     this.turnoSeleccionado = turno;
     this.accionPendiente = accion;
     this.comentarioAccion = '';
-    this.mostrarModalAccion = true;
+    this.mostrarModalComentario = true;
   }
 
-  cerrarModalAccion() {
-    this.mostrarModalAccion = false;
+  cerrarModalComentario() {
+    this.mostrarModalComentario = false;
     this.turnoSeleccionado = null;
     this.accionPendiente = '';
     this.comentarioAccion = '';
@@ -104,33 +118,23 @@ export class MisTurnos implements OnInit {
       return;
     }
 
-    let tipoDetalle = this.accionPendiente;
-
     try {
-      if (this.accionPendiente === 'cancelado') {
-        await this.turnosSrv.actualizarEstado(
-          this.turnoSeleccionado.id,
-          'cancelado',
-          this.comentarioAccion,
-          tipoDetalle,
-          this.pacienteId
-        );
-      } else {
+      const idTurno = this.turnoSeleccionado.id;
+      const comentario = this.comentarioAccion.trim();
+      const accion = this.accionPendiente;
 
-        await this.turnosSrv.agregarDetalleTurno(
-          this.turnoSeleccionado.id,
-          tipoDetalle,
-          this.comentarioAccion,
-          this.pacienteId
-        );
+      if (accion === 'finalizado') {
+        await this.turnosSrv.actualizarEstado(idTurno, 'realizado', comentario, 'finalizado', this.especialistaId);
+      } else if (accion === 'cancelado' || accion === 'rechazado') {
+        await this.turnosSrv.actualizarEstado(idTurno, accion, comentario, accion, this.especialistaId);
       }
 
-      this.toast.show(`Acción ${this.accionPendiente} registrada correctamente.`, 'success');
-      this.cerrarModalAccion();
+      this.toast.show(`Turno ${accion} correctamente.`, 'success');
+      this.cerrarModalComentario();
       this.cargarTurnos();
     } catch (err: any) {
       console.error(err);
-      this.toast.show('Error al realizar la acción.', 'error');
+      this.toast.show('Error al actualizar el turno.', 'error');
     }
   }
 

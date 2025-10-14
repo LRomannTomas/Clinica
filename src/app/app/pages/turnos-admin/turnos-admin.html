@@ -1,0 +1,54 @@
+<app-HeaderPropio></app-HeaderPropio>
+<div class="turnos-admin">
+  <h2>Turnos - Administrador</h2>
+
+  <div class="filtros">
+    <div class="botones">
+      <button [class.active]="tipoFiltro === 'especialidad'" (click)="tipoFiltro = 'especialidad'">
+        Filtrar por Especialidad
+      </button>
+      <button [class.active]="tipoFiltro === 'especialista'" (click)="tipoFiltro = 'especialista'">
+        Filtrar por Especialista
+      </button>
+    </div>
+
+    <input
+      type="text"
+      [(ngModel)]="filtro"
+      placeholder="Escriba para filtrar..."
+    />
+  </div>
+
+  <div *ngIf="cargando" class="loading">Cargando turnos...</div>
+
+  <div *ngIf="!cargando && turnosFiltrados.length === 0" class="sin-turnos">
+    No hay turnos registrados.
+  </div>
+
+  <div *ngFor="let t of turnosFiltrados" class="tarjeta-turno">
+    <h3>{{ t.especialidad | titlecase }}</h3>
+    <p><strong>Paciente:</strong> {{ t.pacientes?.nombre }} {{ t.pacientes?.apellido }}</p>
+    <p><strong>Especialista:</strong> {{ t.especialistas?.nombre }} {{ t.especialistas?.apellido }}</p>
+    <p><strong>Fecha:</strong> {{ t.fecha | date:'shortDate' }} {{ t.hora }}</p>
+    <p><strong>Estado: </strong><span class="estado" [ngClass]="t.estado">{{ t.estado | titlecase }}</span></p>
+
+
+    <div class="acciones">
+      <button *ngIf="puedeCancelar(t)" (click)="abrirModal(t)">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- 🌙 Modal -->
+  <div class="modal-overlay" *ngIf="mostrarModal">
+    <div class="modal-contenido">
+      <h3>Cancelar Turno</h3>
+      <p>Motivo de cancelación:</p>
+      <textarea [(ngModel)]="comentarioCancelacion" rows="4"></textarea>
+
+      <div class="modal-buttons">
+        <button class="confirmar-btn" (click)="confirmarCancelacion()">Confirmar</button>
+        <button class="cerrar-btn" (click)="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

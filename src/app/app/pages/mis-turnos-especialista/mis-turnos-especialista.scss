@@ -1,0 +1,203 @@
+.turnos-especialista {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  h2 {
+    color: #264653;
+    margin-bottom: 1rem;
+  }
+
+  input {
+    width: 60%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+  }
+
+  .tarjeta-turno {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    width: 70%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease-in-out;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    h3 {
+      color: #2a9d8f;
+      margin-bottom: 0.5rem;
+    }
+
+    .estado {
+      font-weight: bold;
+      &.pendiente { color: #e9c46a; }
+      &.aceptado { color: #2a9d8f; }
+      &.rechazado { color: #e76f51; }
+      &.cancelado { color: #f4a261; }
+      &.realizado { color: #264653; }
+    }
+
+    .acciones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+
+      button {
+        background: #2a9d8f;
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+        &:hover { background: #21867a; }
+      }
+
+      button:nth-child(2) { background: #e76f51; }
+      button:nth-child(3) { background: #e9c46a; color: #000; }
+      button:nth-child(4) { background: #264653; }
+      button:nth-child(5) { background: #457b9d; }
+    }
+  }
+
+  .sin-turnos {
+    color: #999;
+    margin-top: 2rem;
+  }
+}
+
+/* 🌙 MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-contenido {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 550px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-out;
+
+  h3 {
+    margin-bottom: 1rem;
+    color: #2a9d8f;
+  }
+
+  .turno-info {
+    background: #f1f8f6;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .comentarios {
+    max-height: 250px;
+    overflow-y: auto;
+
+    .comentario {
+      background: #f8f9fa;
+      padding: 0.8rem;
+      margin-bottom: 0.7rem;
+      border-radius: 8px;
+      border-left: 5px solid #2a9d8f;
+
+      .tipo {
+        font-weight: bold;
+        color: #2a9d8f;
+      }
+
+      p {
+        margin: 0.3rem 0;
+        font-size: 0.95rem;
+      }
+
+      small {
+        color: #777;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .cerrar-btn {
+    margin-top: 1rem;
+    background: #e76f51;
+    border: none;
+    color: white;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s ease-in-out;
+    &:hover { background: #c44b32; }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-contenido {
+  textarea {
+    width: 100%;
+    resize: none;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 0.6rem;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+
+    .confirmar-btn {
+      background: #2a9d8f;
+      border: none;
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      &:hover {
+        background: #21867a;
+      }
+    }
+
+    .cerrar-btn {
+      background: #e76f51;
+      border: none;
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      &:hover {
+        background: #c44b32;
+      }
+    }
+  }
+}

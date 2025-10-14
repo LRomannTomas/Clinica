@@ -13,13 +13,15 @@ import { Auth } from '../../core/servicios/auth';
 import { Almacenamiento } from '../../core/servicios/almacenamiento';
 import { Router } from '@angular/router';
 import { ToastService } from '../../core/servicios/toast';
+import { HeaderPropio } from '../../compartido/components/header/headerPropio';
+
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
   templateUrl: './usuarios.html',
   styleUrls: ['./usuarios.scss'],
-  imports: [CommonModule, ReactiveFormsModule, Loading, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, Loading, FormsModule, HeaderPropio],
 })
 export class Usuarios implements OnInit {
   vista: 'tabla' | 'tipo' | 'form' = 'tabla';
