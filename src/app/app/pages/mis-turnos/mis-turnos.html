@@ -1,4 +1,5 @@
 <app-HeaderPropio></app-HeaderPropio>
+
 <section class="mis-turnos">
   <h2>Mis Turnos</h2>
 
@@ -9,7 +10,7 @@
       [(ngModel)]="filtro"
       (input)="aplicarFiltro()"
     />
-    </div>
+  </div>
 
   <app-loading *ngIf="loading"></app-loading>
 
@@ -17,10 +18,16 @@
     <div *ngFor="let t of filtrado" class="turno">
       <div class="info">
         <p><strong>Especialidad:</strong> {{ t.especialidad }}</p>
-        <p><strong>Especialista:</strong> {{ t.usuarios_especialistas?.nombre }} {{ t.usuarios_especialistas?.apellido }}</p>
+        <p>
+          <strong>Especialista:</strong>
+          {{ t.usuarios_especialistas?.nombre }} {{ t.usuarios_especialistas?.apellido }}
+        </p>
         <p><strong>Fecha:</strong> {{ t.fecha | date }}</p>
         <p><strong>Hora:</strong> {{ t.hora }}</p>
-        <p><strong>Estado:</strong> <span class="estado {{ t.estado }}">{{ t.estado | titlecase }}</span></p>
+        <p>
+          <strong>Estado:</strong>
+          <span class="estado {{ t.estado }}">{{ t.estado | titlecase }}</span>
+        </p>
       </div>
 
       <div class="acciones">
@@ -32,40 +39,35 @@
           Cancelar
         </button>
 
-        <button
-          *ngIf="puedeVerResena(t)"
-          class="encuesta"
-          (click)="verResena(t)"
-        >
+        <button *ngIf="t.estado === 'cancelado'" class="encuesta" (click)="verMotivoCancelacion(t)">
+          Ver Motivo
+        </button>
+
+        <button *ngIf="puedeVerResena(t)" class="encuesta" (click)="verResena(t)">
           Ver Reseña
         </button>
 
-        <button
-          *ngIf="puedeCompletarEncuesta(t)"
-          class="encuesta"
-          (click)="abrirModalAccion(t, 'encuesta')"
-        >
-          Completar Encuesta
-        </button>
-
-        <button
-          *ngIf="puedeCalificar(t)"
-          class="encuesta"
-          (click)="abrirModalAccion(t, 'calificacion')"
-        >
-          Calificar Atención
+        <button *ngIf="puedeEvaluar(t)" class="encuesta" (click)="abrirModalEvaluacion(t)">
+          Evaluar Atención
         </button>
       </div>
     </div>
   </div>
 
   <ng-template #sinTurnos>
-    <p style="text-align: center; color: #888;">No hay turnos registrados.</p>
+    <p style="text-align: center; color: #888">No hay turnos registrados.</p>
   </ng-template>
 
   <div class="modal-overlay" *ngIf="mostrarModalResena">
     <div class="modal-contenido">
-      <h3>🩺 Reseña del Turno</h3>
+      <h3>
+        🩺
+        {{
+          detallesSeleccionados[0]?.tipo === 'cancelacion'
+            ? 'Motivo de Cancelación'
+            : 'Reseña del Turno'
+        }}
+      </h3>
 
       <p class="turno-info">
         <strong>Especialista:</strong>
@@ -75,12 +77,20 @@
         <strong>Fecha:</strong> {{ turnoSeleccionado?.fecha | date }}
       </p>
 
-      <div class="comentarios">
-        <div *ngFor="let d of detallesSeleccionados" class="comentario">
-          <span class="tipo">{{ d.tipo | titlecase }}</span>
-          <p>{{ d.comentario }}</p>
-          <small>{{ d.creado_en | date: 'short' }}</small>
+      <div *ngFor="let d of detallesSeleccionados" class="bloque-resena">
+        <span class="tipo">
+          {{
+            d.tipo === 'cancelacion' ? 'Motivo de cancelación' : d.titulo || (d.tipo | titlecase)
+          }}
+        </span>
+
+        <p [innerHTML]="d.contenido || d.texto || d.comentario"></p>
+
+        <div class="autor-cancelacion" *ngIf="d.autor">
+          <strong>{{ d.autor }}</strong>
         </div>
+
+        <small>{{ d.fecha | date : 'short' }}</small>
       </div>
 
       <button class="cerrar-btn" (click)="cerrarModalResena()">Cerrar</button>
@@ -88,18 +98,94 @@
   </div>
 
   <div class="modal-overlay" *ngIf="mostrarModalAccion">
-    <div class="modal-contenido">
-      <h3>{{ accionPendiente | titlecase }}</h3>
-      <p>Por favor ingrese un comentario:</p>
+    <div class="modal-cancelacion">
+      <div>
+        <h3>{{ getAccionTitulo(accionPendiente) }}</h3>
+      </div>
+
+      <p class="mensaje">
+        Por favor, explicá brevemente el motivo de la
+        {{ accionPendiente === 'cancelado' ? 'cancelación' : accionPendiente }}:
+      </p>
+
       <textarea
         [(ngModel)]="comentarioAccion"
-        placeholder="Escriba su comentario..."
+        placeholder="Escribí tu comentario aquí..."
         rows="4"
+        class="campo-texto"
       ></textarea>
 
+      <div class="modal-actions">
+        <button class="btn-confirmar" (click)="confirmarAccion()">Confirmar</button>
+        <button class="btn-cerrar" (click)="cerrarModalAccion()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarModalEvaluacion">
+    <div class="modal-contenido encuesta">
+      <h3>🩺 Evaluar Atención</h3>
+
+      <p class="turno-info">
+        <strong>Especialista:</strong>
+        {{ turnoSeleccionado?.usuarios_especialistas?.nombre }}
+        {{ turnoSeleccionado?.usuarios_especialistas?.apellido }}<br />
+        <strong>Especialidad:</strong> {{ turnoSeleccionado?.especialidad }}<br />
+        <strong>Fecha:</strong> {{ turnoSeleccionado?.fecha | date }}
+      </p>
+
+      <div class="bloque">
+        <label>Calificá la atención (1 a 10)</label>
+        <div class="puntuacion">
+          <button
+            *ngFor="let n of [].constructor(10); let i = index"
+            type="button"
+            [class.seleccionado]="puntuacion === i + 1"
+            (click)="puntuacion = i + 1"
+          >
+            {{ i + 1 }}
+          </button>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <label>¿Cómo describirías la atención recibida?</label>
+        <div class="opciones">
+          <button
+            *ngFor="let op of ['Excelente', 'Buena', 'Regular', 'Mala']"
+            [class.seleccionado]="respuestas['satisfaccion'] === op"
+            (click)="respuestas['satisfaccion'] = op"
+          >
+            {{ op }}
+          </button>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <label>¿Recomendarías a este profesional?</label>
+        <div class="opciones">
+          <button
+            *ngFor="let op of ['Sí', 'No']"
+            [class.seleccionado]="respuestas['recomendacion'] === op"
+            (click)="respuestas['recomendacion'] = op"
+          >
+            {{ op }}
+          </button>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <label>Dejanos tu comentario (obligatorio)</label>
+        <textarea
+          [(ngModel)]="comentario"
+          placeholder="Escribí tu opinión sobre la atención recibida..."
+          rows="4"
+        ></textarea>
+      </div>
+
       <div class="modal-buttons">
-        <button class="confirmar-btn" (click)="confirmarAccion()">Confirmar</button>
-        <button class="cerrar-btn" (click)="cerrarModalAccion()">Cancelar</button>
+        <button class="confirmar-btn" (click)="enviarEvaluacion()">Enviar</button>
+        <button class="cerrar-btn" (click)="cerrarModalEvaluacion()">Cancelar</button>
       </div>
     </div>
   </div>

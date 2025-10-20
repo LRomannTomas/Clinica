@@ -11,35 +11,41 @@
 
   <app-loading *ngIf="loading"></app-loading>
 
-  <div *ngIf="!loading && filtrado.length > 0; else sinTurnos">
+  <div *ngIf="!loading && filtrado.length > 0; else sinTurnos" class="lista-turnos-especialista">
     <div *ngFor="let t of filtrado" class="tarjeta-turno">
       <h3>{{ t.especialidad }}</h3>
 
-      <p><strong>Paciente:</strong> {{ t.usuarios_pacientes?.nombre }} {{ t.usuarios_pacientes?.apellido }}</p>
+      <p>
+        <strong>Paciente:</strong>
+        {{ t.usuarios_pacientes?.nombre }} {{ t.usuarios_pacientes?.apellido }}
+      </p>
       <p><strong>Fecha:</strong> {{ t.fecha | date }}</p>
       <p><strong>Hora:</strong> {{ t.hora }}</p>
-      <p><strong>Estado:</strong> <span class="estado {{ t.estado }}">{{ t.estado | titlecase }}</span></p>
+      <p>
+        <strong>Estado:</strong>
+        <span class="estado {{ t.estado }}">{{ t.estado | titlecase }}</span>
+      </p>
 
       <div class="acciones">
-        <button *ngIf="puedeAceptar(t)" (click)="aceptarTurno(t)">
-          Aceptar
-        </button>
+        <button *ngIf="puedeAceptar(t)" (click)="aceptarTurno(t)">Aceptar</button>
 
         <button *ngIf="puedeCancelar(t)" (click)="abrirModalComentario(t, 'cancelado')">
           Cancelar
         </button>
 
-        <button *ngIf="puedeRechazar(t)" (click)="abrirModalComentario(t, 'rechazado')">
-          Rechazar
+        <button
+          *ngIf="t.estado === 'cancelado'"
+          class="btn-motivo"
+          (click)="verMotivoCancelacion(t)"
+        >
+          Ver Motivo
         </button>
 
         <button *ngIf="puedeFinalizar(t)" (click)="abrirModalComentario(t, 'finalizado')">
           Finalizar
         </button>
 
-        <button *ngIf="puedeVerResena(t)" (click)="verResena(t)">
-          Ver Reseña
-        </button>
+        <button *ngIf="puedeVerResena(t)" (click)="verResena(t)">Ver Reseña</button>
       </div>
     </div>
   </div>
@@ -50,7 +56,14 @@
 
   <div class="modal-overlay" *ngIf="mostrarModalResena">
     <div class="modal-contenido">
-      <h3>🩺 Reseña del Turno</h3>
+      <h3>
+        🩺
+        {{
+          detallesSeleccionados[0]?.tipo === 'cancelacion'
+            ? 'Motivo de Cancelación'
+            : 'Reseña del Turno'
+        }}
+      </h3>
 
       <p class="turno-info">
         <strong>Paciente:</strong>
@@ -60,33 +73,46 @@
         <strong>Fecha:</strong> {{ turnoSeleccionado?.fecha | date }}
       </p>
 
-      <div class="comentarios">
-        <div *ngFor="let d of detallesSeleccionados" class="comentario">
-          <span class="tipo">{{ d.tipo | titlecase }}</span>
-          <p>{{ d.comentario }}</p>
-          <small>{{ d.creado_en | date: 'short' }}</small>
+      <div *ngFor="let d of detallesSeleccionados" class="bloque-resena">
+        <span class="tipo">
+          {{
+            d.tipo === 'cancelacion' ? 'Motivo de cancelación' : d.titulo || (d.tipo | titlecase)
+          }}
+        </span>
+
+        <p [innerHTML]="d.contenido || d.texto || d.comentario"></p>
+
+        <div class="autor-cancelacion" *ngIf="d.autor">
+          <strong>{{ d.autor }}</strong>
         </div>
+
+        <small>{{ d.creado_en | date : 'short' }}</small>
       </div>
 
       <button class="cerrar-btn" (click)="cerrarModalResena()">Cerrar</button>
     </div>
   </div>
 
-
   <div class="modal-overlay" *ngIf="mostrarModalComentario">
-    <div class="modal-contenido">
-      <h3>{{ accionPendiente | titlecase }} Turno</h3>
-      <p>Por favor ingrese un comentario:</p>
+    <div class="modal-cancelacion">
+      <div class="modal-header">
+        <h3>{{ accionLabel }} Turno</h3>
+      </div>
+
+      <p class="mensaje">
+        Por favor, explicá brevemente el motivo de {{ accionLabel | lowercase }}:
+      </p>
 
       <textarea
         [(ngModel)]="comentarioAccion"
-        placeholder="Escriba su comentario..."
+        placeholder="Escribí tu comentario aquí..."
         rows="4"
+        class="campo-texto"
       ></textarea>
 
-      <div class="modal-buttons">
-        <button class="confirmar-btn" (click)="confirmarAccion()">Confirmar</button>
-        <button class="cerrar-btn" (click)="cerrarModalComentario()">Cancelar</button>
+      <div class="modal-actions">
+        <button class="btn-confirmar" (click)="confirmarAccion()">Confirmar</button>
+        <button class="btn-cerrar" (click)="cerrarModalComentario()">Cancelar</button>
       </div>
     </div>
   </div>

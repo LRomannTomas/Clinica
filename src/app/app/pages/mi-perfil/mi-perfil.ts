@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { supabase } from '../../core/supabase/supabase.client';
@@ -10,7 +10,7 @@ import { HeaderPropio } from '../../compartido/components/header/headerPropio';
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderPropio],
   templateUrl: './mi-perfil.html',
-  styleUrls: ['./mi-perfil.scss']
+  styleUrls: ['./mi-perfil.scss'],
 })
 export class MiPerfil implements OnInit {
   user: any = null;
@@ -25,15 +25,21 @@ export class MiPerfil implements OnInit {
     especialidad: '',
     dia_semana: '',
     hora_inicio: '',
-    hora_fin: ''
+    hora_fin: '',
   };
 
   dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
 
-  constructor(private toast: ToastService) {}
+  horasDisponibles: string[] = [];
+  horaInicioSeleccionada: string = '';
+  horaFinCalculada: string = '';
+
+  constructor(private toast: ToastService, private cdr: ChangeDetectorRef) {}
 
   async ngOnInit() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data: usuario, error: userError } = await supabase
@@ -100,8 +106,38 @@ export class MiPerfil implements OnInit {
     this.horarios = data ?? [];
   }
 
+  generarHorasDisponibles() {
+    this.horasDisponibles = [];
+    const horaInicial = 7.5; 
+    const horaFinal = 15; 
+    for (let h = horaInicial; h <= horaFinal; h += 0.5) {
+      const horas = Math.floor(h);
+      const minutos = h % 1 === 0 ? '00' : '30';
+      this.horasDisponibles.push(`${horas.toString().padStart(2, '0')}:${minutos}`);
+    }
+  }
+
+  seleccionarHoraInicio(hora: string) {
+    this.horaInicioSeleccionada = hora;
+    const [h, m] = hora.split(':').map(Number);
+    const inicio = new Date(0, 0, 0, h, m);
+    const fin = new Date(inicio.getTime() + 8 * 60 * 60 * 1000);
+    const hh = fin.getHours().toString().padStart(2, '0');
+    const mm = fin.getMinutes().toString().padStart(2, '0');
+    this.horaFinCalculada = `${hh}:${mm}`;
+
+    this.nuevo.hora_inicio = hora;
+    this.nuevo.hora_fin = this.horaFinCalculada;
+  }
+
+
   async guardarHorario() {
-    if (!this.nuevo.especialidad || !this.nuevo.dia_semana || !this.nuevo.hora_inicio || !this.nuevo.hora_fin) {
+    if (
+      !this.nuevo.especialidad ||
+      !this.nuevo.dia_semana ||
+      !this.nuevo.hora_inicio ||
+      !this.nuevo.hora_fin
+    ) {
       this.toast.show('Complete todos los campos.', 'error');
       return;
     }
@@ -112,7 +148,7 @@ export class MiPerfil implements OnInit {
       dia_semana: this.nuevo.dia_semana,
       hora_inicio: this.nuevo.hora_inicio,
       hora_fin: this.nuevo.hora_fin,
-      activo: true
+      activo: true,
     });
 
     if (error) {
@@ -146,10 +182,15 @@ export class MiPerfil implements OnInit {
 
   irAPaso(nuevoPaso: number) {
     this.paso = nuevoPaso;
+    if (nuevoPaso === 3) {
+      this.generarHorasDisponibles();
+    }
   }
 
   nuevoHorario() {
     this.nuevo = { especialidad: '', dia_semana: '', hora_inicio: '', hora_fin: '' };
+    this.horaInicioSeleccionada = '';
+    this.horaFinCalculada = '';
     this.paso = 1;
   }
 }

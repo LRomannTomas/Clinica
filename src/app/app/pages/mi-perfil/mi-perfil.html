@@ -20,10 +20,7 @@
           {{ e }}
         </button>
       </div>
-      <button 
-        class="btn-continuar" 
-        [disabled]="!nuevo.especialidad" 
-        (click)="paso = 2">
+      <button class="btn-continuar" [disabled]="!nuevo.especialidad" (click)="paso = 2">
         Continuar
       </button>
     </div>
@@ -40,32 +37,38 @@
       </div>
       <div class="navegacion">
         <button class="btn-volver" (click)="paso = 1">Volver</button>
-        <button 
-          class="btn-continuar" 
-          [disabled]="!nuevo.dia_semana" 
-          (click)="paso = 3">
+        <button
+          class="btn-continuar"
+          [disabled]="!nuevo.dia_semana"
+          (click)="irAPaso(3)">
           Continuar
         </button>
       </div>
     </div>
 
     <div *ngIf="paso === 3" class="bloque animar">
-      <h3>Seleccioná el rango horario</h3>
-      <div class="inputs">
-        <div>
-          <label>Desde</label>
-          <input type="time" [(ngModel)]="nuevo.hora_inicio" />
-        </div>
-        <div>
-          <label>Hasta</label>
-          <input type="time" [(ngModel)]="nuevo.hora_fin" />
-        </div>
+      <h3>Seleccioná tu horario de trabajo</h3>
+      <p class="subtexto">El turno laboral dura 8 horas</p>
+
+      <div class="botonera">
+        <button
+          *ngFor="let h of horasDisponibles"
+          (click)="seleccionarHoraInicio(h)"
+          [class.seleccionado]="horaInicioSeleccionada === h">
+          {{ h }}
+        </button>
       </div>
+
+      <div *ngIf="horaInicioSeleccionada" class="preview">
+        <p><strong>Horario seleccionado:</strong></p>
+        <p>{{ horaInicioSeleccionada }} → {{ horaFinCalculada }}</p>
+      </div>
+
       <div class="navegacion">
         <button class="btn-volver" (click)="paso = 2">Volver</button>
-        <button 
-          class="btn-continuar" 
-          [disabled]="!nuevo.hora_inicio || !nuevo.hora_fin" 
+        <button
+          class="btn-continuar"
+          [disabled]="!horaInicioSeleccionada"
           (click)="guardarHorario()">
           Guardar horario
         </button>
@@ -80,7 +83,9 @@
           <div class="info">
             <p><strong>{{ h.especialidad }}</strong></p>
             <p>{{ h.dia_semana | titlecase }} — {{ h.hora_inicio }} a {{ h.hora_fin }}</p>
-            <p [class.activo]="h.activo">Estado: {{ h.activo ? 'Activo' : 'Inactivo' }}</p>
+            <p [class.activo]="h.activo">
+              Estado: {{ h.activo ? 'Activo' : 'Inactivo' }}
+            </p>
           </div>
           <button (click)="cambiarEstado(h)">
             {{ h.activo ? 'Desactivar' : 'Activar' }}

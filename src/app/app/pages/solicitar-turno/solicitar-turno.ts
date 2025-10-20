@@ -45,8 +45,10 @@ export class SolicitarTurno implements OnInit {
       .single();
 
     this.esAdmin = usuario?.perfil === 'admin';
-    await this.cargarEspecialidades();
+    await this.cargarEspecialistas(); 
+    await this.cargarEspecialidades(); 
     if (this.esAdmin) await this.cargarPacientes();
+
   }
 
   async cargarEspecialidades() {
@@ -60,36 +62,22 @@ export class SolicitarTurno implements OnInit {
   }
 
   async cargarEspecialistas() {
-    if (!this.especialidadSeleccionada) return;
-
-    const espSeleccionada = this.especialidadSeleccionada.trim().toLowerCase();
-
-    const { data, error } = await supabase.from('especialistas').select(`
+  const { data, error } = await supabase.from('especialistas').select(`
     id,
     especialidad,
     foto_url,
     usuarios:id (nombre, apellido)
   `);
 
-    if (error) {
-      console.error('Error cargando especialistas:', error);
-      this.toast.show('Error al cargar especialistas', 'error');
-      return;
-    }
-
-    this.especialistas = (data ?? []).filter((esp: any) =>
-      (esp.especialidad ?? [])
-        .map((v: string) =>
-          v
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-        )
-        .includes(espSeleccionada.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
-    );
-
-    console.log('Especialistas filtrados:', this.especialistas);
+  if (error) {
+    console.error('Error cargando especialistas:', error);
+    this.toast.show('Error al cargar especialistas', 'error');
+    return;
   }
+
+  this.especialistas = data ?? [];
+}
+
 
   async seleccionarEspecialista(esp: any) {
     this.especialistaSeleccionado = esp;
@@ -285,5 +273,31 @@ export class SolicitarTurno implements OnInit {
     .toLocaleDateString('es-ES', opciones)
     .replace(/^\w/, (c) => c.toUpperCase());
 }
+
+getEspecialidadImage(nombre: string): string {
+  if (!nombre) return 'assets/images/especialidad-default.png';
+
+  const nombreNormalizado = nombre
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+  if (nombreNormalizado.includes('dermatolog')) {
+    return 'assets/images/dermatologia.png';
+  }
+
+  if (nombreNormalizado.includes('cardiolog')) {
+    return 'assets/images/cardiologia.png';
+  }
+
+  if (nombreNormalizado.includes('neurolog')) {
+    return 'assets/images/neurologia.png';
+  }
+
+  return 'assets/images/especialidadDefault.png';
+}
+
+
 
 }

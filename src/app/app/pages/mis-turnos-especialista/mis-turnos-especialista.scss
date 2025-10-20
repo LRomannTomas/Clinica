@@ -1,89 +1,205 @@
 .turnos-especialista {
   padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  font-family: 'Poppins', sans-serif;
+  color: #264653;
 
   h2 {
     color: #264653;
+    text-align: center;
     margin-bottom: 1rem;
   }
 
   input {
     width: 60%;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1rem;
     border: 1px solid #ccc;
-    border-radius: 6px;
-    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem auto 2rem auto;
+    display: block;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #2a9d8f;
+      box-shadow: 0 0 5px rgba(42, 157, 143, 0.3);
+    }
   }
 
+  .lista-turnos-especialista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 4.5rem;
+  justify-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+
   .tarjeta-turno {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 1rem;
-    width: 70%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-    transition: transform 0.2s ease-in-out;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.3rem 1.6rem;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 6px solid #2a9d8f;
 
     &:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
     }
 
     h3 {
       color: #2a9d8f;
       margin-bottom: 0.5rem;
+      font-size: 1.2rem;
     }
 
     .estado {
       font-weight: bold;
-      &.pendiente { color: #e9c46a; }
-      &.aceptado { color: #2a9d8f; }
-      &.rechazado { color: #e76f51; }
-      &.cancelado { color: #f4a261; }
-      &.realizado { color: #264653; }
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      margin-top: 0.4rem;
+
+      &.pendiente {
+        background: #fff3e0;
+        color: #f4a261;
+      }
+      &.aceptado {
+        background: #e0f7f5;
+        color: #2a9d8f;
+      }
+      &.rechazado {
+        background: #ffebee;
+        color: #e76f51;
+      }
+      &.cancelado {
+        background: #ffe9d6;
+        color: #f4a261;
+      }
+      &.realizado {
+        background: #e8f5e9;
+        color: #264653;
+      }
     }
 
     .acciones {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
+      gap: 0.6rem;
+      margin-top: 1rem;
 
       button {
+        flex: 1 1 45%;
+        min-width: 120px;
         background: #2a9d8f;
         color: white;
         border: none;
-        padding: 0.4rem 1rem;
-        border-radius: 6px;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
         cursor: pointer;
-        transition: background 0.2s;
-        &:hover { background: #21867a; }
+        font-weight: 500;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #21867a;
+        }
       }
 
-      button:nth-child(2) { background: #e76f51; }
-      button:nth-child(3) { background: #e9c46a; color: #000; }
-      button:nth-child(4) { background: #264653; }
-      button:nth-child(5) { background: #457b9d; }
+      button:nth-child(2) {
+        background: #e76f51;
+        &:hover {
+          background: #c44b32;
+        }
+      }
+
+      button:nth-child(3) {
+        background: #e9c46a;
+        color: #000;
+      }
+
+      button:nth-child(4) {
+        background: #264653;
+      }
+
+      button:nth-child(5) {
+        background: #457b9d;
+      }
     }
   }
 
   .sin-turnos {
     color: #999;
     margin-top: 2rem;
+    font-style: italic;
   }
 }
 
-/* 🌙 MODAL */
+@media (max-width: 768px) {
+  .turnos-especialista {
+    input {
+      width: 90%;
+    }
+
+    .lista-turnos-especialista {
+      grid-template-columns: 1fr;
+      padding: 0.5rem;
+    }
+
+    .tarjeta-turno {
+      max-width: 100%;
+    }
+  }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-cancelacion {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  animation: scaleIn 0.25s ease-out;
+}
+
+.modal-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+
+  .icono {
+    font-size: 1.8rem;
+  }
+
+  h3 {
+    color: #e76f51;
+    font-weight: 600;
+    font-size: 1.4rem;
+  }
+}
+
+.mensaje {
+  color: #264653;
+  font-size: 1rem;
+  margin-bottom: 1rem;
 }
 
 .modal-contenido {
@@ -94,110 +210,128 @@
   max-width: 550px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   animation: fadeIn 0.3s ease-out;
+}
 
-  h3 {
-    margin-bottom: 1rem;
-    color: #2a9d8f;
+.campo-texto {
+  width: 100%;
+  border-radius: 8px;
+  border: 1.5px solid #b0bec5;
+  padding: 0.8rem;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
+  resize: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #2a9d8f;
+    box-shadow: 0 0 4px rgba(42, 157, 143, 0.3);
   }
+}
 
-  .turno-info {
-    background: #f1f8f6;
+.modal-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+  gap: 1rem;
+
+  button {
+    flex: 1;
     padding: 0.8rem;
+    border: none;
     border-radius: 8px;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-  }
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
 
-  .comentarios {
-    max-height: 250px;
-    overflow-y: auto;
-
-    .comentario {
-      background: #f8f9fa;
-      padding: 0.8rem;
-      margin-bottom: 0.7rem;
-      border-radius: 8px;
-      border-left: 5px solid #2a9d8f;
-
-      .tipo {
-        font-weight: bold;
-        color: #2a9d8f;
-      }
-
-      p {
-        margin: 0.3rem 0;
-        font-size: 0.95rem;
-      }
-
-      small {
-        color: #777;
-        font-size: 0.8rem;
-      }
+    &:hover {
+      transform: translateY(-2px);
     }
   }
 
-  .cerrar-btn {
-    margin-top: 1rem;
-    background: #e76f51;
-    border: none;
-    color: white;
-    padding: 0.5rem 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s ease-in-out;
-    &:hover { background: #c44b32; }
+  
+  .btn-confirmar {
+    background-color: #3ead9b;
+    color: #fff;
+
+    &:hover {
+      background-color: #228866;
+    }
+  }
+
+  .btn-cerrar {
+    background-color: #bd5c1b;
+    color: #fff;
+
+    &:hover {
+      background-color: #c24c29;
+    }
   }
 }
+
+
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.modal-contenido {
-  textarea {
-    width: 100%;
-    resize: none;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    padding: 0.6rem;
-    font-size: 0.95rem;
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
+  from {
+    opacity: 0;
   }
-
-  .modal-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-
-    .confirmar-btn {
-      background: #2a9d8f;
-      border: none;
-      color: white;
-      padding: 0.5rem 1.2rem;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s ease-in-out;
-      &:hover {
-        background: #21867a;
-      }
-    }
-
-    .cerrar-btn {
-      background: #e76f51;
-      border: none;
-      color: white;
-      padding: 0.5rem 1.2rem;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s ease-in-out;
-      &:hover {
-        background: #c44b32;
-      }
-    }
+  to {
+    opacity: 1;
   }
 }
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.bloque-resena {
+  background: #f9f9f9;
+  border-left: 5px solid #2a9d8f;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  text-align: left;
+
+  h4 {
+    color: #2a9d8f;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .contenido p {
+    margin: 0.3rem 0;
+    color: #264653;
+  }
+}
+
+.cerrar-btn {
+  background: #e76f51;
+  border: none;
+  color: white;
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #c44b32;
+  }
+}
+
+.autor-cancelacion {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #264653;
+  font-style: italic;
+}
+
+

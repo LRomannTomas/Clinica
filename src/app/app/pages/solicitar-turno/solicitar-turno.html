@@ -2,67 +2,72 @@
 
 <section class="solicitar-turno">
   <div class="contenedor-turno">
-    <h2>🩺 Solicitar Turno</h2>
+    <h2>🩺 Sacar un Turno</h2>
 
-    <div *ngIf="!especialidadSeleccionada" class="paso fade-in">
-      <h3>Seleccioná una especialidad</h3>
-      <div class="lista">
-        <button
-          *ngFor="let e of especialidades"
-          (click)="especialidadSeleccionada = e; cargarEspecialistas()"
-          class="btn-opcion"
-        >
-          {{ e }}
-        </button>
-      </div>
-    </div>
-
-    <div *ngIf="especialidadSeleccionada && !especialistaSeleccionado" class="paso fade-in">
-      <button class="btn-volver" (click)="resetearFormulario()">← Volver</button>
-      <h3>Seleccioná un especialista</h3>
-      <div class="lista">
+    <div *ngIf="!especialistaSeleccionado" class="paso fade-in">
+      <h3>Seleccioná un profesional</h3>
+      <div class="lista-profesionales">
         <div
           *ngFor="let esp of especialistas"
-          class="card-opcion"
+          class="btn-profesional"
           [class.seleccionado]="especialistaSeleccionado?.id === esp.id"
           (click)="seleccionarEspecialista(esp)"
         >
-          <img *ngIf="esp.foto_url" [src]="esp.foto_url" alt="Foto especialista" />
+          <img
+            [src]="esp.foto_url || 'assets/images/usuario-default.png'"
+            alt="Foto especialista"
+          />
           <span>{{ esp.usuarios?.nombre }} {{ esp.usuarios?.apellido }}</span>
         </div>
       </div>
     </div>
 
-    <div *ngIf="especialistaSeleccionado && !fechaSeleccionada" class="paso fade-in">
+    <div *ngIf="especialistaSeleccionado && !especialidadSeleccionada" class="paso fade-in">
       <button class="btn-volver" (click)="especialistaSeleccionado = null">← Volver</button>
-      <h3>Seleccioná una fecha (próximos 15 días)</h3>
+      <h3>Seleccioná una especialidad</h3>
 
-      <div class="lista" *ngIf="fechasDisponibles.length > 0; else sinFechas">
+      <div class="lista-especialidades">
+        <div
+          *ngFor="let e of especialidades"
+          class="card-especialidad"
+          [class.seleccionado]="especialidadSeleccionada === e"
+          (click)="especialidadSeleccionada = e; generarFechasDisponibles()"
+        >
+          <img [src]="getEspecialidadImage(e)" alt="Imagen especialidad" />
+
+          <p>{{ e }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="especialidadSeleccionada && !fechaSeleccionada" class="paso fade-in">
+      <button class="btn-volver" (click)="especialidadSeleccionada = ''">← Volver</button>
+      <h3>Seleccioná un día disponible</h3>
+
+      <div class="lista-dias" *ngIf="fechasDisponibles.length; else sinFechas">
         <button
           *ngFor="let f of fechasDisponibles"
-          class="btn-opcion"
+          class="btn-dia"
           [class.seleccionado]="fechaSeleccionada === f"
           (click)="fechaSeleccionada = f; cargarHorariosDisponibles()"
         >
-          {{ formatearFecha(f) }}
+          {{ f | date : 'dd-MM-yyyy' }}
         </button>
       </div>
 
       <ng-template #sinFechas>
-        <div class="mensaje-vacio">
-          <p>📅 No hay fechas disponibles para este especialista en los próximos días.</p>
-        </div>
+        <p class="mensaje-vacio">📅 No hay fechas disponibles para este profesional.</p>
       </ng-template>
     </div>
 
     <div *ngIf="fechaSeleccionada && !horaSeleccionada" class="paso fade-in">
       <button class="btn-volver" (click)="fechaSeleccionada = ''">← Volver</button>
-      <h3>Seleccioná un horario disponible</h3>
+      <h3>Seleccioná un horario</h3>
 
-      <div class="lista" *ngIf="horariosDisponibles.length > 0; else sinHorarios">
+      <div class="lista-horarios" *ngIf="horariosDisponibles.length; else sinHorarios">
         <button
           *ngFor="let h of horariosDisponibles"
-          class="btn-opcion"
+          class="btn-horario"
           [class.seleccionado]="horaSeleccionada === h"
           (click)="horaSeleccionada = h"
         >
@@ -71,40 +76,18 @@
       </div>
 
       <ng-template #sinHorarios>
-        <div class="mensaje-vacio">
-          <p>⏰ No hay horarios disponibles para la fecha seleccionada.</p>
-        </div>
+        <p class="mensaje-vacio">⏰ No hay horarios disponibles para la fecha seleccionada.</p>
       </ng-template>
     </div>
 
-    <div *ngIf="horaSeleccionada && esAdmin && !pacienteSeleccionado" class="paso fade-in">
+    <div *ngIf="horaSeleccionada" class="paso fade-in">
       <button class="btn-volver" (click)="horaSeleccionada = ''">← Volver</button>
-      <h3>Seleccioná un paciente</h3>
-      <div class="lista">
-        <button
-          *ngFor="let p of pacientes"
-          class="btn-opcion"
-          [class.seleccionado]="pacienteSeleccionado === p.id"
-          (click)="pacienteSeleccionado = p.id"
-        >
-          {{ p.nombre }} {{ p.apellido }}
-        </button>
-      </div>
-    </div>
-
-    <div *ngIf="horaSeleccionada && (!esAdmin || pacienteSeleccionado)" class="paso fade-in">
-      <button
-        class="btn-volver"
-        (click)="esAdmin ? (pacienteSeleccionado = null) : (horaSeleccionada = '')"
-      >
-        ← Volver
-      </button>
-      <h3>Confirmar turno</h3>
+      <h3>Confirmar Turno</h3>
       <p class="resumen">
-        <strong>Especialidad:</strong> {{ especialidadSeleccionada }} <br />
-        <strong>Especialista:</strong> {{ especialistaSeleccionado?.usuarios?.nombre }}
-        {{ especialistaSeleccionado?.usuarios?.apellido }} <br />
-        <strong>Fecha:</strong> {{ formatearFecha(fechaSeleccionada) }} <br />
+        <strong>Profesional:</strong> {{ especialistaSeleccionado?.usuarios?.nombre }}
+        {{ especialistaSeleccionado?.usuarios?.apellido }}<br />
+        <strong>Especialidad:</strong> {{ especialidadSeleccionada }}<br />
+        <strong>Fecha:</strong> {{ fechaSeleccionada | date : 'dd-MM-yyyy' }}<br />
         <strong>Hora:</strong> {{ horaSeleccionada }}
       </p>
       <button class="btn-confirmar" (click)="confirmarTurno()">Confirmar Turno</button>
