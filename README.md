@@ -163,20 +163,6 @@ Sistema completo de **registro y visualización médica**, implementado para esp
 
 ---
 
-## 🧩 Estructura de Supabase (actualizada)
-
-| Tabla | Descripción |
-|-------|--------------|
-| **usuarios** | Información general de todos los perfiles. |
-| **pacientes** | Datos personales y obra social. |
-| **especialistas** | Foto, especialidades y disponibilidad. |
-| **turnos** | Relación entre paciente, especialista, fecha y estado. |
-| **detalles_turno** | Comentarios, evaluaciones y reseñas. |
-| **historia_clinica** | Altura, peso, temperatura, presión y extras médicos. |
-| **horarios_especialistas** | Disponibilidad y horarios activos. |
-
----
-
 ## 🧭 Flujo general del sistema
 
 1. Registro con reCAPTCHA.  
