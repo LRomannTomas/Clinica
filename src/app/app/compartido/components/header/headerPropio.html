@@ -8,18 +8,20 @@
       <a routerLink="/usuarios" routerLinkActive="activo">Usuarios</a>
       <a routerLink="/turnos-admin" routerLinkActive="activo">Turnos</a>
       <a routerLink="/solicitar-turno" routerLinkActive="activo">Solicitar Turno</a>
+      <a routerLink="/historia-clinica-admin" routerLinkActive="activo">Historia Clínica</a>
     </ng-container>
 
     <ng-container *ngIf="perfil === 'paciente'">
       <a routerLink="/mis-turnos" routerLinkActive="activo">Mis Turnos</a>
       <a routerLink="/solicitar-turno" routerLinkActive="activo">Solicitar Turno</a>
+      <a routerLink="/historia-clinica-paciente" routerLinkActive="activo">Historia Clínica</a>
     </ng-container>
 
     <ng-container *ngIf="perfil === 'especialista'">
       <a routerLink="/mi-perfil" routerLinkActive="activo">Mi Perfil</a>
       <a routerLink="/mis-turnos-especialista" routerLinkActive="activo">Mis Turnos</a>
+      <a routerLink="/historia-clinica-especialista" routerLinkActive="activo">Historia Clínica</a>
     </ng-container>
-
 
     <button class="logout" (click)="cerrarSesion()">Cerrar sesión</button>
   </nav>

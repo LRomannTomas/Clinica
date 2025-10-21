@@ -1,2 +1,5 @@
-<router-outlet></router-outlet>
+<main [@fadeSlideAnimation]="getRouterOutletState(outlet)" class="router-wrapper">
+  <router-outlet #outlet="outlet"></router-outlet>
+</main>
+
 <app-toast></app-toast>

@@ -334,4 +334,90 @@
   font-style: italic;
 }
 
+.form-historia {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+
+  .campo {
+    display: flex;
+    flex-direction: column;
+    label {
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+    input {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px;
+    }
+  }
+}
+
+.extras {
+  grid-column: span 2;
+  background: #f8f9fa;
+  padding: 0.6rem;
+  border-radius: 8px;
+
+  h4 {
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .fila-extra {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+
+    input {
+      flex: 1;
+      padding: 5px;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+    }
+  }
+
+  .btn-add {
+    background: #2a9d8f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+}
+
+.comentario-section {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+
+  .comentario-label {
+    font-weight: 600;
+    color: #264653;
+    margin-bottom: 0.5rem;
+  }
+
+  textarea {
+    resize: none;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 0.6rem;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border 0.2s ease-in-out;
+
+    &:focus {
+      border-color: #2a9d8f;
+      box-shadow: 0 0 4px rgba(42, 157, 143, 0.3);
+    }
+  }
+}
+
 

@@ -51,6 +51,40 @@ export const routes: Routes = [
   path: 'mi-perfil',
   loadComponent: () => import('./app/pages/mi-perfil/mi-perfil').then(m => m.MiPerfil)
   },
+  {
+  path: 'mi-perfil-paciente',
+  loadComponent: () =>
+    import('./app/pages/mi-perfil-paciente/mi-perfil-paciente').then(m => m.MiPerfilPaciente),
+},
+{
+  path: 'pacientes-especialista',
+  loadComponent: () =>
+    import('./app/pages/pacientes-especialista/pacientes-especialista').then(
+      (m) => m.PacientesEspecialista
+    ),
+},
+{
+  path: 'historia-clinica-paciente',
+  loadComponent: () =>
+    import('./app/pages/historia-clinica-paciente/historia-clinica-paciente').then(
+      (m) => m.HistoriaClinicaPaciente
+    ),
+},
+{
+  path: 'historia-clinica-especialista',
+  loadComponent: () =>
+    import('./app/pages/historia-clinica-especialista/historia-clinica-especialista').then(
+      (m) => m.HistoriaClinicaEspecialista
+    ),
+},
+{
+  path: 'historia-clinica-admin',
+  loadComponent: () =>
+    import('./app/pages/historia-clinica-admin/historia-clinica-admin').then(
+      (m) => m.HistoriaClinicaAdmin
+    ),
+},
+
 
   { path: '**', redirectTo: '' },
 ];

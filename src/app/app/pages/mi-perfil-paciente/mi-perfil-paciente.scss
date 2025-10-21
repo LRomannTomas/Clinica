@@ -1,0 +1,38 @@
+.perfil-paciente {
+  padding: 1rem;
+  h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .datos-personales,
+  .historia {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .item-historia {
+    border-top: 1px solid #ddd;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .btn-descargar {
+    display: block;
+    margin: 1rem auto;
+    background: #2a9d8f;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-descargar:hover {
+    background: #21867a;
+  }
+}

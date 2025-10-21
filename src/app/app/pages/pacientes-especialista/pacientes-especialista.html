@@ -1,0 +1,55 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+<section class="pacientes-especialista">
+  <h2>Pacientes Atendidos</h2>
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="!seleccion && !loading">
+    <input
+      type="text"
+      placeholder="Buscar paciente..."
+      [(ngModel)]="filtro"
+      class="input-busqueda"
+    />
+
+    <div *ngIf="filtrados.length > 0; else sinPacientes" class="lista-pacientes">
+      <div *ngFor="let p of filtrados" class="paciente-card">
+        <h3>{{ p.nombre }} {{ p.apellido }}</h3>
+        <p><strong>Email:</strong> {{ p.email }}</p>
+        <button (click)="verHistoria(p)">Ver Historia Clínica</button>
+      </div>
+    </div>
+
+    <ng-template #sinPacientes>
+      <p style="text-align:center;color:#888">No se encontraron pacientes.</p>
+    </ng-template>
+  </div>
+
+  <div *ngIf="seleccion && !loading" class="detalle-historia">
+    <button class="volver" (click)="cerrarDetalle()">← Volver</button>
+
+    <h3>Historia Clínica de {{ seleccion.nombre }} {{ seleccion.apellido }}</h3>
+
+    <div *ngIf="historiaClinica.length > 0; else sinHistoria">
+      <div *ngFor="let h of historiaClinica" class="item-historia">
+        <h4>{{ h.turnos?.especialidad }} - {{ h.turnos?.fecha | date }}</h4>
+        <p><strong>Altura:</strong> {{ h.altura_cm }} cm</p>
+        <p><strong>Peso:</strong> {{ h.peso_kg }} kg</p>
+        <p><strong>Temperatura:</strong> {{ h.temperatura_c }} °C</p>
+        <p><strong>Presión:</strong> {{ h.presion }}</p>
+
+        <div *ngIf="h.extras?.length">
+          <strong>Extras:</strong>
+          <ul>
+            <li *ngFor="let e of h.extras">{{ e.clave }}: {{ e.valor }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #sinHistoria>
+      <p style="text-align:center;color:#888">No hay registros clínicos.</p>
+    </ng-template>
+  </div>
+</section>

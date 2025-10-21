@@ -30,7 +30,16 @@ export class MisTurnosEspecialista implements OnInit {
   accionPendiente = '';
   comentarioAccion = '';
 
-  
+  private filtroTimer: any = null;
+
+  historia = {
+    altura_cm: null,
+    peso_kg: null,
+    temperatura_c: null,
+    presion: '',
+  };
+
+  extras: Array<{ clave: string; valor: string }> = [{ clave: '', valor: '' }];
 
   private accionLabelMap: Record<string, string> = {
     cancelado: 'Cancelar',
@@ -64,15 +73,35 @@ export class MisTurnosEspecialista implements OnInit {
     }
   }
 
-  aplicarFiltro() {
+  aplicarFiltroConDebounce() {
+    clearTimeout(this.filtroTimer);
+    this.filtroTimer = setTimeout(() => this.aplicarFiltro(), 500);
+  }
+
+  async aplicarFiltro() {
     const texto = this.filtro.toLowerCase().trim();
-    this.filtrado = this.turnos.filter(
-      (t) =>
-        t.especialidad.toLowerCase().includes(texto) ||
-        `${t.usuarios_pacientes?.nombre ?? ''} ${t.usuarios_pacientes?.apellido ?? ''}`
-          .toLowerCase()
-          .includes(texto)
-    );
+
+    if (!texto) {
+      this.filtrado = [...this.turnos];
+      return;
+    }
+
+    try {
+      this.loading = true;
+
+      const resultados = await this.turnosSrv.buscarTurnosConHistoria({
+        scope: 'especialista',
+        userId: this.especialistaId,
+        texto,
+      });
+
+      this.filtrado = resultados;
+    } catch (err: any) {
+      console.error(err);
+      this.toast.show('Error al aplicar el filtro de búsqueda.', 'error');
+    } finally {
+      this.loading = false;
+    }
   }
 
   puedeAceptar(t: any) {
@@ -92,34 +121,33 @@ export class MisTurnosEspecialista implements OnInit {
   }
 
   async verMotivoCancelacion(t: any) {
-  try {
-    const detalles = await this.turnosSrv.getDetallesTurno(t.id);
-    const motivo = detalles.find((d: any) => d.tipo === 'cancelacion');
+    try {
+      const detalles = await this.turnosSrv.getDetallesTurno(t.id);
+      const motivo = detalles.find((d: any) => d.tipo === 'cancelacion');
 
-    if (!motivo) {
-      this.toast.show('No hay motivo de cancelación registrado.', 'info');
-      return;
+      if (!motivo) {
+        this.toast.show('No hay motivo de cancelación registrado.', 'info');
+        return;
+      }
+
+      const autor = this.obtenerAutorCancelacion(motivo);
+
+      this.detallesSeleccionados = [
+        {
+          tipo: 'cancelacion',
+          texto: motivo.texto || motivo.comentario || '(Sin motivo especificado)',
+          creado_en: motivo.creado_en,
+          autor,
+        },
+      ];
+
+      this.turnoSeleccionado = t;
+      this.mostrarModalResena = true;
+    } catch (err: any) {
+      console.error(err);
+      this.toast.show('Error al obtener el motivo de cancelación.', 'error');
     }
-
-    const autor = this.obtenerAutorCancelacion(motivo);
-
-    this.detallesSeleccionados = [
-      {
-        tipo: 'cancelacion',
-        texto: motivo.texto || motivo.comentario || '(Sin motivo especificado)',
-        creado_en: motivo.creado_en,
-        autor,
-      },
-    ];
-
-    this.turnoSeleccionado = t;
-    this.mostrarModalResena = true;
-  } catch (err: any) {
-    console.error(err);
-    this.toast.show('Error al obtener el motivo de cancelación.', 'error');
   }
-}
-
 
   obtenerAutorCancelacion(detalle: any): string {
     if (!detalle?.creado_por) return 'Usuario desconocido';
@@ -151,6 +179,8 @@ export class MisTurnosEspecialista implements OnInit {
     this.accionPendiente = accion;
     this.comentarioAccion = '';
     this.mostrarModalComentario = true;
+    this.historia = { altura_cm: null, peso_kg: null, temperatura_c: null, presion: '' };
+    this.extras = [{ clave: '', valor: '' }];
   }
 
   cerrarModalComentario() {
@@ -161,29 +191,71 @@ export class MisTurnosEspecialista implements OnInit {
   }
 
   async confirmarAccion() {
-    if (!this.comentarioAccion.trim()) {
-      this.toast.show('Debe ingresar un comentario.', 'error');
-      return;
+    if (this.accionPendiente === 'finalizado') {
+      if (
+        !this.historia.altura_cm ||
+        !this.historia.peso_kg ||
+        !this.historia.temperatura_c ||
+        !this.historia.presion
+      ) {
+        this.toast.show('Completá todos los datos obligatorios de la historia clínica.', 'error');
+        return;
+      }
+
+      for (const extra of this.extras) {
+        const tieneClave = extra.clave?.trim() !== '';
+        const tieneValor = extra.valor?.trim() !== '';
+
+        if (tieneClave && !tieneValor) {
+          this.toast.show(`El campo "${extra.clave}" debe tener un valor.`, 'error');
+          return;
+        }
+
+        if (!tieneClave && tieneValor) {
+          this.toast.show('No podés ingresar un valor sin especificar una clave.', 'error');
+          return;
+        }
+
+        if (!this.comentarioAccion.trim()) {
+          this.toast.show('Debés dejar un comentario para el paciente.', 'error');
+          return;
+        }
+      }
+    } else {
+      if (!this.comentarioAccion.trim()) {
+        this.toast.show('Debe ingresar un comentario.', 'error');
+        return;
+      }
     }
 
     try {
       const idTurno = this.turnoSeleccionado.id;
-      const comentario = this.comentarioAccion.trim();
       const accion = this.accionPendiente;
 
       if (accion === 'finalizado') {
         await this.turnosSrv.actualizarEstado(
           idTurno,
           'realizado',
-          comentario,
+          this.comentarioAccion.trim(),
           'finalizado',
           this.especialistaId
         );
+
+        await this.turnosSrv.crearHistoriaClinica({
+          turnoId: idTurno,
+          pacienteId: this.turnoSeleccionado.paciente_id,
+          especialistaId: this.especialistaId,
+          altura_cm: Number(this.historia.altura_cm),
+          peso_kg: Number(this.historia.peso_kg),
+          temperatura_c: Number(this.historia.temperatura_c),
+          presion: this.historia.presion,
+          extras: this.extras.filter((e) => e.clave && e.valor),
+        });
       } else if (accion === 'cancelado' || accion === 'rechazado') {
         await this.turnosSrv.actualizarEstado(
           idTurno,
           accion,
-          comentario,
+          this.comentarioAccion.trim(),
           accion,
           this.especialistaId
         );
@@ -198,65 +270,85 @@ export class MisTurnosEspecialista implements OnInit {
     }
   }
 
+  agregarExtra() {
+    if (this.extras.length < 3) {
+      this.extras.push({ clave: '', valor: '' });
+    } else {
+      this.toast.show('Solo se permiten hasta 3 campos adicionales.', 'info');
+    }
+  }
+
   async verResena(t: any) {
-  try {
-    const detalles = await this.turnosSrv.getDetallesTurno(t.id);
+    try {
+      const detalles = await this.turnosSrv.getDetallesTurno(t.id);
 
-    if (!detalles || detalles.length === 0) {
-      this.toast.show('No hay reseñas disponibles para este turno.', 'info');
-      return;
-    }
-
-    const detalleFinalizado = detalles.find((d: any) => d.tipo === 'finalizado');
-    const detalleEvaluacion = detalles.find((d: any) => d.tipo === 'evaluacion');
-
-    this.detallesSeleccionados = [];
-
-    if (detalleFinalizado) {
-      this.detallesSeleccionados.push({
-        titulo: 'Comentario del especialista',
-        contenido: detalleFinalizado.texto || detalleFinalizado.comentario || '(Sin comentario)',
-        autor: 'Especialista',
-        creado_en: detalleFinalizado.creado_en,
-        tipo: 'finalizado',
-      });
-    }
-
-    if (detalleEvaluacion) {
-      let evalData: any;
-      try {
-        evalData = JSON.parse(detalleEvaluacion.datos || detalleEvaluacion.comentario);
-      } catch {
-        evalData = {};
+      if (!detalles || detalles.length === 0) {
+        this.toast.show('No hay reseñas disponibles para este turno.', 'info');
+        return;
       }
 
-      this.detallesSeleccionados.push({
-        titulo: 'Evaluación del paciente',
-        contenido: `
-          <p><strong>Puntuación:</strong> ${evalData.puntuacion ?? '-'} / 10</p>
-          <p><strong>Satisfacción:</strong> ${evalData.satisfaccion ?? '-'}</p>
-          <p><strong>Recomendación:</strong> ${evalData.recomendacion ?? '-'}</p>
-          <p><strong>Comentario:</strong> ${evalData.comentario ?? '-'}</p>
-        `,
-        autor: 'Paciente',
-        creado_en: detalleEvaluacion.creado_en,
-        tipo: 'evaluacion',
-      });
-    }
+      const detalleFinalizado = detalles.find((d: any) => d.tipo === 'finalizado');
+      const detalleEvaluacion = detalles.find((d: any) => d.tipo === 'evaluacion');
 
-    if (this.detallesSeleccionados.length === 0) {
-      this.toast.show('No hay reseñas disponibles para este turno.', 'info');
-      return;
-    }
+      this.detallesSeleccionados = [];
 
-    this.turnoSeleccionado = t;
-    this.mostrarModalResena = true;
-  } catch (err: any) {
-    console.error(err);
-    this.toast.show('Error al obtener la reseña.', 'error');
+      if (detalleFinalizado) {
+        this.detallesSeleccionados.push({
+          titulo: 'Comentario del especialista',
+          contenido: detalleFinalizado.texto || detalleFinalizado.comentario || '(Sin comentario)',
+          autor: 'Especialista',
+          creado_en: detalleFinalizado.creado_en,
+          tipo: 'finalizado',
+        });
+      }
+
+      if (detalleEvaluacion) {
+        let evalData: any;
+
+        try {
+          if (typeof detalleEvaluacion.datos === 'string') {
+            evalData = JSON.parse(detalleEvaluacion.datos);
+          } else if (
+            typeof detalleEvaluacion.datos === 'object' &&
+            detalleEvaluacion.datos !== null
+          ) {
+            evalData = detalleEvaluacion.datos;
+          } else if (detalleEvaluacion.comentario) {
+            evalData = JSON.parse(detalleEvaluacion.comentario);
+          } else {
+            evalData = {};
+          }
+        } catch (e) {
+          console.error('Error al parsear evaluación:', e, detalleEvaluacion);
+          evalData = {};
+        }
+
+        this.detallesSeleccionados.push({
+          titulo: 'Evaluación del paciente',
+          contenido: `
+      <p><strong>Puntuación:</strong> ${evalData.puntuacion ?? '-'} / 10</p>
+      <p><strong>Satisfacción:</strong> ${evalData.satisfaccion ?? '-'}</p>
+      <p><strong>Recomendación:</strong> ${evalData.recomendacion ?? '-'}</p>
+      <p><strong>Comentario:</strong> ${evalData.comentario ?? '-'}</p>
+    `,
+          autor: 'Paciente',
+          creado_en: detalleEvaluacion.creado_en,
+          tipo: 'evaluacion',
+        });
+      }
+
+      if (this.detallesSeleccionados.length === 0) {
+        this.toast.show('No hay reseñas disponibles para este turno.', 'info');
+        return;
+      }
+
+      this.turnoSeleccionado = t;
+      this.mostrarModalResena = true;
+    } catch (err: any) {
+      console.error(err);
+      this.toast.show('Error al obtener la reseña.', 'error');
+    }
   }
-}
-
 
   cerrarModalResena() {
     this.mostrarModalResena = false;

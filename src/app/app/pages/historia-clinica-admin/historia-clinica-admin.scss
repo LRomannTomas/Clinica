@@ -1,0 +1,139 @@
+.historia-clinica-admin {
+  padding: 2rem 1.5rem;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .titulo-barra {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    h2 {
+      color: var(--color-primary);
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .busqueda-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .input-busqueda {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.7rem 1rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--color-border);
+      background-color: var(--color-input-bg, #ffffff);
+      font-size: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      transition: all 0.25s ease;
+      &:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 10px rgba(42, 157, 143, 0.4);
+      }
+    }
+  }
+
+  .lista {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1000px;
+  }
+
+  .tarjeta {
+    background: var(--color-card-bg, #ffffff);
+    border-radius: 16px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    padding: 1.3rem 1.2rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-top: 4px solid var(--color-primary);
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .tarjeta-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.8rem;
+
+      .paciente-info {
+        h3 {
+          margin: 0;
+          color: var(--color-accent);
+          font-size: 1.1rem;
+        }
+        .especialidad {
+          font-size: 0.9rem;
+          color: var(--color-secondary, #666);
+        }
+      }
+
+      .fecha {
+        font-size: 0.9rem;
+        color: var(--color-secondary, #777);
+        font-style: italic;
+      }
+    }
+
+    .datos-fijos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem 1rem;
+      margin-bottom: 0.8rem;
+
+      p {
+        margin: 0;
+        font-size: 0.95rem;
+        strong {
+          color: var(--color-primary);
+        }
+      }
+    }
+
+    .extras {
+      background-color: rgba(42, 157, 143, 0.07);
+      padding: 0.8rem;
+      border-radius: 10px;
+      h4 {
+        margin-top: 0;
+        font-size: 1rem;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        li {
+          margin: 0.3rem 0;
+          font-size: 0.9rem;
+          strong {
+            color: var(--color-accent);
+          }
+        }
+      }
+    }
+  }
+
+  .vacio {
+    margin-top: 3rem;
+    font-style: italic;
+    color: var(--color-secondary);
+    font-size: 1.1rem;
+  }
+}

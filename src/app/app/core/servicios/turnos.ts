@@ -68,6 +68,21 @@ export class Turnos {
     return true;
   }
 
+  async getTodasLasHistorias() {
+  const { data, error } = await supabase
+    .from('historia_clinica')
+    .select(`
+      *,
+      turnos:turno_id (fecha, hora, especialidad),
+      paciente:paciente_id (nombre, apellido, email)
+    `)
+    .order('creado_en', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+
   async actualizarEstado(
     turnoId: string,
     nuevoEstado: string,
@@ -97,22 +112,23 @@ export class Turnos {
   }
 
   async agregarDetalleTurno(turnoId: string, tipo: string, contenido: any, autorId: string) {
-    const insertData: any = {
-      turno_id: turnoId,
-      tipo,
-      creado_por: autorId,
-      creado_en: new Date().toISOString(),
-    };
+  const insertData: any = {
+    turno_id: turnoId,
+    tipo,
+    creado_por: autorId,
+    creado_en: new Date().toISOString(),
+  };
 
-    if (typeof contenido === 'string') {
-      insertData.texto = contenido.trim();
-    } else {
-      insertData.datos = contenido;
-    }
+  if (typeof contenido === 'string') {
+    insertData.texto = contenido.trim();
+  } else {
 
-    const { error } = await supabase.from('detalles_turno').insert(insertData);
-    if (error) throw error;
+    insertData.datos = JSON.stringify(contenido);
   }
+
+  const { error } = await supabase.from('detalles_turno').insert(insertData);
+  if (error) throw error;
+}
 
   async enviarEncuesta(turnoId: string, calificacion: number, comentario: string) {
     const user = await this.auth.getUser();
@@ -220,10 +236,7 @@ export class Turnos {
     if (!turnoId || !pacienteId || !especialistaId) {
       throw new Error('Faltan identificadores obligatorios.');
     }
-    if (
-      altura_cm == null || peso_kg == null ||
-      temperatura_c == null || !presion?.trim()
-    ) {
+    if (altura_cm == null || peso_kg == null || temperatura_c == null || !presion?.trim()) {
       throw new Error('Todos los datos fijos son obligatorios.');
     }
     if (extras.length > 3) {
@@ -248,10 +261,12 @@ export class Turnos {
   async getHistoriaPorPaciente(pacienteId: string) {
     const { data, error } = await supabase
       .from('historia_clinica')
-      .select(`
+      .select(
+        `
         *,
         turnos:turno_id (fecha, hora, especialidad)
-      `)
+      `
+      )
       .eq('paciente_id', pacienteId)
       .order('creado_en', { ascending: false });
 
@@ -292,78 +307,153 @@ export class Turnos {
   }
 
   async buscarTurnosConHistoria(params: {
-    scope: 'paciente' | 'especialista';
-    userId: string;
-    texto: string; 
-  }) {
-    const { scope, userId, texto } = params;
-    const q = texto.trim().toLowerCase();
+  scope: 'paciente' | 'especialista';
+  userId: string;
+  texto: string;
+}) {
+  const { scope, userId, texto } = params;
+  const q = texto.trim().toLowerCase();
 
-    const baseSel =
-      `
-      *,
-      detalles_turno(*)
-      `;
-
-    const turnosQuery = supabase
-      .from('turnos')
-      .select(baseSel)
-      .order('fecha', { ascending: false });
-
+  if (!q) {
     if (scope === 'paciente') {
-      turnosQuery.eq('paciente_id', userId);
+      return await this.getTurnosPorPacienteConDetalles(userId);
     } else {
-      turnosQuery.eq('especialista_id', userId);
+      return await this.getTurnosPorEspecialistaConDetalles(userId);
     }
+  }
 
-    const { data: turnos, error: errT } = await turnosQuery;
-    if (errT) throw errT;
+  const baseSel =
+    scope === 'paciente'
+      ? `
+          *,
+          usuarios_especialistas:especialista_id (nombre, apellido),
+          detalles_turno(*)
+        `
+      : `
+          *,
+          usuarios_pacientes:paciente_id (nombre, apellido),
+          detalles_turno(*)
+        `;
 
-    if (!q) return turnos || [];
+  const query = supabase
+    .from('turnos')
+    .select(baseSel)
+    .order('fecha', { ascending: false });
 
-    const idsTurnos = (turnos || []).map((t) => t.id);
-    if (idsTurnos.length === 0) return [];
+  if (scope === 'paciente') {
+    query.eq('paciente_id', userId);
+  } else {
+    query.eq('especialista_id', userId);
+  }
 
-    const { data: historias, error: errH } = await supabase
-      .from('historia_clinica')
-      .select('turno_id, altura_cm, peso_kg, temperatura_c, presion, extras')
-      .in('turno_id', idsTurnos);
+  const { data: turnos, error } = await query;
+  if (error) throw error;
+  if (!turnos?.length) return [];
 
-    if (errH) throw errH;
+  const idsTurnos = turnos.map((t) => t.id);
+  const { data: historias, error: errH } = await supabase
+    .from('historia_clinica')
+    .select('turno_id, altura_cm, peso_kg, temperatura_c, presion, extras')
+    .in('turno_id', idsTurnos);
 
-    const mapHistoria = new Map(historias?.map((h) => [h.turno_id, h]) || []);
+  if (errH) throw errH;
+
+  const mapHistoria = new Map(historias?.map((h) => [h.turno_id, h]) || []);
+
+  const filtrados = (turnos || []).filter((t) => {
+    const h = mapHistoria.get(t.id);
+
+    const camposTurno = [
+      t.especialidad,
+      t.fecha,
+      t.hora,
+      t.estado,
+      t.usuarios_especialistas?.nombre,
+      t.usuarios_especialistas?.apellido,
+      t.usuarios_pacientes?.nombre,
+      t.usuarios_pacientes?.apellido,
+    ];
+
+    const coincideTurno = camposTurno.some(
+      (v) => v && v.toString().toLowerCase().includes(q)
+    );
+
+    if (coincideTurno) return true;
+
+    if (!h) return false;
+
+    const fijos = [
+      h.altura_cm,
+      h.peso_kg,
+      h.temperatura_c,
+      h.presion,
+    ].map((v) => (v ?? '').toString().toLowerCase());
+
+    const dyn = Array.isArray(h.extras)
+      ? (h.extras as Array<any>)
+          .flatMap((e) => [e?.clave, e?.valor])
+          .filter(Boolean)
+          .map((v) => v.toLowerCase())
+      : [];
+
+    return [...fijos, ...dyn].some((v) => v.includes(q));
+  });
+
+  return filtrados;
+}
 
 
-    const coincide = (txt?: string | number) =>
-      (txt ?? '').toString().toLowerCase().includes(q);
+  async getPacientesAtendidosPorEspecialista(especialistaId: string) {
+    const { data, error } = await supabase
+      .from('turnos')
+      .select(
+        `
+      paciente_id,
+      usuarios_pacientes:paciente_id (id, nombre, apellido, email)
+    `
+      )
+      .eq('especialista_id', especialistaId)
+      .eq('estado', 'realizado');
 
-    const filtrados = (turnos || []).filter((t) => {
-      const h = mapHistoria.get(t.id);
-      const camposTurno = [
-        t.especialidad,
-        t.fecha,
-        t.hora,
-        t.estado,
-      ];
+    if (error) throw error;
 
-      const coincideTurno = camposTurno.some(coincide);
+    const pacientesUnicos = new Map<string, any>();
 
-      let coincideHistoria = false;
-      if (h) {
-        const fijos = [
-          h.altura_cm, h.peso_kg, h.temperatura_c, h.presion
-        ].map((v) => (v ?? '').toString());
+    data?.forEach((t: any) => {
+      const paciente = Array.isArray(t.usuarios_pacientes)
+        ? t.usuarios_pacientes[0]
+        : t.usuarios_pacientes;
 
-        const dyn = Array.isArray(h.extras)
-          ? (h.extras as Array<any>).flatMap((e) => [e?.clave, e?.valor])
-          : [];
-
-        coincideHistoria = [...fijos, ...dyn].some(coincide);
+      if (paciente && paciente.id && !pacientesUnicos.has(paciente.id)) {
+        pacientesUnicos.set(paciente.id, paciente);
       }
-
-      return coincideTurno || coincideHistoria;
     });
 
-    return filtrados;
+    return Array.from(pacientesUnicos.values());
   }
+
+  async getPacientesAtendidosConHistoria(especialistaId: string) {
+  const { data, error } = await supabase
+    .from('historia_clinica')
+    .select(`
+      paciente_id,
+      usuarios:paciente_id (id, nombre, apellido, email)
+    `)
+    .eq('especialista_id', especialistaId);
+
+  if (error) throw error;
+
+  const unicos = new Map<string, any>();
+  (data || []).forEach((h: any) => {
+    const u = h.usuarios;
+    if (u && u.id && !unicos.has(u.id)) {
+      unicos.set(u.id, u);
+    }
+  });
+
+  return Array.from(unicos.values());
+}
+
+
+
 }

@@ -44,7 +44,6 @@ export class Login implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
 
-    // ✅ Generación automática de accesos rápidos
     const pacientes = Array.from({ length: 3 }, (_, i) => ({
       nombre: `Paciente ${i + 1}`,
       rol: 'paciente' as RolQuick,

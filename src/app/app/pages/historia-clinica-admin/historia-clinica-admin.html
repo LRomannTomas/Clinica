@@ -1,0 +1,50 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+<section class="historia-clinica-admin">
+  <div class="titulo-barra">
+    <h2>📋 Historias Clínicas — Administrador</h2>
+    <div class="busqueda-container">
+      <input
+        type="text"
+        placeholder="🔍 Buscar por paciente, especialidad o valor clínico..."
+        [(ngModel)]="filtro"
+        (input)="aplicarFiltroConDebounce()"
+        class="input-busqueda"
+      />
+    </div>
+  </div>
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="!loading && filtrado.length > 0; else vacio" class="lista">
+    <div *ngFor="let h of filtrado" class="tarjeta">
+      <div class="tarjeta-header">
+        <div class="paciente-info">
+          <h3>{{ h.paciente?.nombre }} {{ h.paciente?.apellido }}</h3>
+          <span class="especialidad">{{ h.turnos?.especialidad }}</span>
+        </div>
+        <span class="fecha">{{ h.turnos?.fecha | date: 'longDate':'':'es' }}</span>
+      </div>
+
+      <div class="datos-fijos">
+        <p><strong>Altura:</strong> {{ h.altura_cm }} cm</p>
+        <p><strong>Peso:</strong> {{ h.peso_kg }} kg</p>
+        <p><strong>Temperatura:</strong> {{ h.temperatura_c }} °C</p>
+        <p><strong>Presión:</strong> {{ h.presion }}</p>
+      </div>
+
+      <div *ngIf="h.extras?.length" class="extras">
+        <h4>🩺 Datos adicionales</h4>
+        <ul>
+          <li *ngFor="let e of h.extras">
+            <strong>{{ e.clave }}:</strong> {{ e.valor }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #vacio>
+    <p class="vacio">🕳️ No hay historias clínicas registradas.</p>
+  </ng-template>
+</section>

@@ -1,0 +1,67 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+<section class="historia-clinica-especialista">
+  <div class="titulo-barra">
+    <h2>👩‍⚕️ Historias Clínicas Registradas</h2>
+    <p>Pacientes atendidos por vos y sus registros médicos</p>
+  </div>
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="!loading && pacientes.length > 0; else vacio" class="lista-pacientes">
+    <div *ngFor="let p of pacientes" class="paciente-card">
+      <div class="info">
+        <h3>{{ p.nombre }} {{ p.apellido }}</h3>
+        <p class="email">{{ p.email }}</p>
+      </div>
+      <button class="btn-ver" (click)="verHistoria(p)">📋 Ver historias</button>
+    </div>
+  </div>
+
+  <ng-template #vacio>
+    <p class="vacio">🕳️ Aún no registraste ninguna historia clínica.</p>
+  </ng-template>
+
+  <div class="modal-overlay" *ngIf="mostrarModal">
+    <div class="modal-contenido">
+      <div class="modal-header">
+        <h3>📋 Historias de {{ pacienteSeleccionado?.nombre }} {{ pacienteSeleccionado?.apellido }}</h3>
+      </div>
+
+      <div *ngIf="historiasSeleccionadas.length > 0; else sinHistorias" class="modal-body">
+        <div *ngFor="let h of historiasSeleccionadas" class="historia-card">
+          <div class="cabecera">
+            <div>
+              <h4>{{ h.turnos?.especialidad }}</h4>
+              <span class="fecha">{{ h.turnos?.fecha | date:'longDate':'':'es' }}</span>
+            </div>
+          </div>
+
+          <div class="datos-fijos">
+            <p><strong>Altura:</strong> {{ h.altura_cm }} cm</p>
+            <p><strong>Peso:</strong> {{ h.peso_kg }} kg</p>
+            <p><strong>Temperatura:</strong> {{ h.temperatura_c }} °C</p>
+            <p><strong>Presión:</strong> {{ h.presion }}</p>
+          </div>
+
+          <div *ngIf="h.extras?.length > 0" class="extras">
+            <h5>🩺 Datos adicionales</h5>
+            <ul>
+              <li *ngFor="let e of h.extras">
+                <strong>{{ e.clave }}:</strong> {{ e.valor }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #sinHistorias>
+        <p class="sin-historias">Este paciente no tiene historias registradas.</p>
+      </ng-template>
+
+      <div class="modal-footer">
+        <button class="btn-cerrar" (click)="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</section>

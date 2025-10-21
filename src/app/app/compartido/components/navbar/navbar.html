@@ -11,6 +11,11 @@
 
     <li *ngIf="isLoggedIn && role === 'admin'"><a routerLink="/usuarios">Usuarios</a></li>
 
+    <li *ngIf="isLoggedIn && role === 'paciente'">
+    <a routerLink="/historia-clinica">Historia Clínica</a>
+    </li>
+
+
     <li *ngIf="isLoggedIn">
       <button (click)="logout()" class="btn-salir">Cerrar sesión</button>
     </li>

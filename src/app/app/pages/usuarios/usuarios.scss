@@ -450,6 +450,45 @@ button[type='submit'] {
   }
 }
 
+.excel-btn-container {
+  position: relative;
+  width: 90%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.3rem;
+
+  .btn-descargar {
+    background-color: #6bafac;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    &:hover {
+      background-color: #21867a;
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+
+
+
 
 
 

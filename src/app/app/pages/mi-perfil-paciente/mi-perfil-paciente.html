@@ -1,0 +1,41 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+<section class="perfil-paciente">
+  <h2>Mi Perfil</h2>
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="!loading">
+    <div class="datos-personales" *ngIf="paciente">
+      <h3>Datos del Paciente</h3>
+      <p><strong>Nombre:</strong> {{ paciente.user_metadata?.nombre }}</p>
+      <p><strong>Apellido:</strong> {{ paciente.user_metadata?.apellido }}</p>
+      <p><strong>Email:</strong> {{ paciente.email }}</p>
+    </div>
+
+    <div class="historia" *ngIf="historiaClinica.length > 0; else sinHistoria">
+      <h3>Historia Clínica</h3>
+
+      <div *ngFor="let h of historiaClinica" class="item-historia">
+        <h4>{{ h.turnos?.especialidad }} - {{ h.turnos?.fecha | date }}</h4>
+        <p><strong>Altura:</strong> {{ h.altura_cm }} cm</p>
+        <p><strong>Peso:</strong> {{ h.peso_kg }} kg</p>
+        <p><strong>Temperatura:</strong> {{ h.temperatura_c }} °C</p>
+        <p><strong>Presión:</strong> {{ h.presion }}</p>
+
+        <div *ngIf="h.extras?.length">
+          <strong>Extras:</strong>
+          <ul>
+            <li *ngFor="let e of h.extras">{{ e.clave }}: {{ e.valor }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="btn-descargar" (click)="descargarPDF()">📄 Descargar PDF</button>
+    </div>
+
+    <ng-template #sinHistoria>
+      <p style="text-align:center; color:#888;">No hay historia clínica disponible.</p>
+    </ng-template>
+  </div>
+</section>

@@ -1,0 +1,48 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+
+<button class="btn-pdf" (click)="generarPDF()">
+  <img src="assets/images/pdf.png" alt="Descargar PDF" />
+</button>
+
+
+<section class="historia-clinica">
+  <div class="titulo">
+  <h2>🩺 Mi Historia Clínica</h2>
+  <p>Visualizá tus atenciones médicas registradas por los especialistas</p>
+</div>
+
+
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="!loading && historias.length > 0; else vacio" class="lista-historias">
+    <div *ngFor="let h of historias" class="tarjeta">
+      <div class="tarjeta-header">
+        <div class="info">
+          <h3>{{ h.turnos?.especialidad }}</h3>
+          <span class="fecha">{{ h.turnos?.fecha | date: 'longDate':'':'es' }}</span>
+        </div>
+      </div>
+
+      <div class="datos-fijos">
+        <p><strong>Altura:</strong> {{ h.altura_cm }} cm</p>
+        <p><strong>Peso:</strong> {{ h.peso_kg }} kg</p>
+        <p><strong>Temperatura:</strong> {{ h.temperatura_c }} °C</p>
+        <p><strong>Presión:</strong> {{ h.presion }}</p>
+      </div>
+
+      <div *ngIf="h.extras?.length > 0" class="extras">
+        <h4>🩺 Datos adicionales</h4>
+        <ul>
+          <li *ngFor="let e of h.extras">
+            <strong>{{ e.clave }}:</strong> {{ e.valor }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #vacio>
+    <p class="vacio">🕳️ Aún no tenés registros en tu historia clínica.</p>
+  </ng-template>
+</section>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Auth } from '../../core/servicios/auth';
 import { ToastService } from '../../core/servicios/toast';
 import { Loading } from '../../compartido/components/loading/loading';
@@ -14,6 +14,17 @@ import { HeaderPropio } from '../../compartido/components/header/headerPropio';
   templateUrl: './mis-turnos.html',
   styleUrls: ['./mis-turnos.scss'],
   imports: [CommonModule, FormsModule, Loading, HeaderPropio],
+  animations: [
+    trigger('zoomInOut', [
+      transition(':enter', [
+        style({ transform: 'scale(0.8)', opacity: 0 }),
+        animate('200ms ease-out', style({ transform: 'scale(1)', opacity: 1 })),
+      ]),
+      transition(':leave', [
+        animate('200ms ease-in', style({ transform: 'scale(0.8)', opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class MisTurnos implements OnInit {
   turnos: any[] = [];
@@ -34,7 +45,9 @@ export class MisTurnos implements OnInit {
   mostrarModalAccion = false;
   accionPendiente = '';
   comentarioAccion = '';
-
+  
+  private filtroTimer: any = null;
+  
   constructor(private turnosSrv: Turnos, private auth: Auth, private toast: ToastService) {}
 
   async ngOnInit() {
@@ -57,16 +70,36 @@ export class MisTurnos implements OnInit {
     }
   }
 
-  aplicarFiltro() {
-    const texto = this.filtro.toLowerCase().trim();
-    this.filtrado = this.turnos.filter(
-      (t) =>
-        t.especialidad.toLowerCase().includes(texto) ||
-        `${t.usuarios_especialistas?.nombre ?? ''} ${t.usuarios_especialistas?.apellido ?? ''}`
-          .toLowerCase()
-          .includes(texto)
-    );
+  aplicarFiltroConDebounce() {
+  clearTimeout(this.filtroTimer);
+  this.filtroTimer = setTimeout(() => this.aplicarFiltro(), 500); 
+}
+
+  async aplicarFiltro() {
+  const texto = this.filtro.toLowerCase().trim();
+
+  if (!texto) {
+    this.filtrado = [...this.turnos];
+    return;
   }
+
+  try {
+    this.loading = true;
+
+    const resultados = await this.turnosSrv.buscarTurnosConHistoria({
+      scope: 'paciente',
+      userId: this.pacienteId,
+      texto,
+    });
+
+    this.filtrado = resultados;
+  } catch (err: any) {
+    console.error(err);
+    this.toast.show('Error al aplicar el filtro de búsqueda.', 'error');
+  } finally {
+    this.loading = false;
+  }
+}
 
   puedeCancelar(t: any) {
     return !['realizado', 'cancelado'].includes(t.estado);
@@ -97,7 +130,7 @@ export class MisTurnos implements OnInit {
   }
 
   async enviarEvaluacion() {
-    if (!this.puntuacion) {
+    if (this.puntuacion == null) {
       this.toast.show('Debe seleccionar una puntuación.', 'error');
       return;
     }
@@ -117,7 +150,7 @@ export class MisTurnos implements OnInit {
       await this.turnosSrv.agregarDetalleTurno(
         this.turnoSeleccionado.id,
         'evaluacion',
-        JSON.stringify(feedback),
+        feedback,
         this.pacienteId
       );
 
@@ -147,34 +180,76 @@ export class MisTurnos implements OnInit {
       if (detalleFinalizado) {
         this.detallesSeleccionados.push({
           titulo: 'Comentario del especialista',
-          contenido: detalleFinalizado.texto || detalleFinalizado.comentario || '(Sin comentario)',
+          contenido:
+            detalleFinalizado.comentario ||
+            detalleFinalizado.texto ||
+            detalleFinalizado.detalle ||
+            detalleFinalizado.datos ||
+            detalleFinalizado.descripcion ||
+            '(Sin comentario)',
+
           autor: 'Especialista',
           fecha: detalleFinalizado.creado_en,
           tipo: 'finalizado',
         });
       }
 
-      if (detalleEvaluacion) {
-        let evalData: any;
-        try {
-          evalData = JSON.parse(detalleEvaluacion.datos || detalleEvaluacion.comentario);
-        } catch {
-          evalData = {};
-        }
+      const historia = await this.turnosSrv.getHistoriaPorTurno?.(t.id);
+      if (historia) {
+        const extrasHtml =
+          historia.extras && historia.extras.length
+            ? historia.extras
+                .map((e: any) => `<p><strong>${e.clave}:</strong> ${e.valor}</p>`)
+                .join('')
+            : '';
 
         this.detallesSeleccionados.push({
-          titulo: 'Evaluación del paciente',
+          titulo: 'Datos de la historia clínica',
           contenido: `
-          <p><strong>Puntuación:</strong> ${evalData.puntuacion ?? '-'} / 10</p>
-          <p><strong>Satisfacción:</strong> ${evalData.satisfaccion ?? '-'}</p>
-          <p><strong>Recomendación:</strong> ${evalData.recomendacion ?? '-'}</p>
-          <p><strong>Comentario:</strong> ${evalData.comentario ?? '-'}</p>
-        `,
-          autor: 'Paciente',
-          fecha: detalleEvaluacion.creado_en,
-          tipo: 'evaluacion',
+      <p><strong>Altura:</strong> ${historia.altura_cm} cm</p>
+      <p><strong>Peso:</strong> ${historia.peso_kg} kg</p>
+      <p><strong>Temperatura:</strong> ${historia.temperatura_c} °C</p>
+      <p><strong>Presión:</strong> ${historia.presion}</p>
+      ${extrasHtml}
+    `,
+          autor: 'Especialista',
+          fecha: historia.creado_en,
+          tipo: 'historia',
         });
       }
+
+      if (detalleEvaluacion) {
+  let evalData: any;
+
+  try {
+    if (typeof detalleEvaluacion.datos === 'string') {
+      evalData = JSON.parse(detalleEvaluacion.datos);
+    } else if (typeof detalleEvaluacion.datos === 'object' && detalleEvaluacion.datos !== null) {
+      evalData = detalleEvaluacion.datos;
+    } else if (detalleEvaluacion.comentario) {
+      evalData = JSON.parse(detalleEvaluacion.comentario);
+    } else {
+      evalData = {};
+    }
+  } catch (e) {
+    console.error('Error al parsear evaluación:', e, detalleEvaluacion);
+    evalData = {};
+  }
+
+  this.detallesSeleccionados.push({
+    titulo: 'Evaluación del paciente',
+    contenido: `
+      <p><strong>Puntuación:</strong> ${evalData.puntuacion ?? '-'} / 10</p>
+      <p><strong>Satisfacción:</strong> ${evalData.satisfaccion ?? '-'}</p>
+      <p><strong>Recomendación:</strong> ${evalData.recomendacion ?? '-'}</p>
+      <p><strong>Comentario:</strong> ${evalData.comentario ?? '-'}</p>
+    `,
+    autor: 'Paciente',
+    fecha: detalleEvaluacion.creado_en,
+    tipo: 'evaluacion',
+  });
+}
+
 
       if (this.detallesSeleccionados.length === 0) {
         this.toast.show('No hay reseñas disponibles para este turno.', 'info');

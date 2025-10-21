@@ -4,9 +4,9 @@
 
   <input
     type="text"
-    placeholder="Filtrar por especialidad o paciente..."
+    placeholder="Buscar por nombre, paciente o dato clínico..."
     [(ngModel)]="filtro"
-    (input)="aplicarFiltro()"
+    (input)="aplicarFiltroConDebounce()"
   />
 
   <app-loading *ngIf="loading"></app-loading>
@@ -99,16 +99,69 @@
         <h3>{{ accionLabel }} Turno</h3>
       </div>
 
-      <p class="mensaje">
-        Por favor, explicá brevemente el motivo de {{ accionLabel | lowercase }}:
-      </p>
+      <ng-container *ngIf="accionPendiente === 'finalizado'; else comentarioSimple">
+        <p class="mensaje">Completá los datos de la historia clínica:</p>
 
-      <textarea
-        [(ngModel)]="comentarioAccion"
-        placeholder="Escribí tu comentario aquí..."
-        rows="4"
-        class="campo-texto"
-      ></textarea>
+        <div class="form-historia">
+          <div class="campo">
+            <label>Altura (cm)</label>
+            <input type="number" [(ngModel)]="historia.altura_cm" placeholder="Ej: 175" />
+          </div>
+
+          <div class="campo">
+            <label>Peso (kg)</label>
+            <input type="number" [(ngModel)]="historia.peso_kg" placeholder="Ej: 70" />
+          </div>
+
+          <div class="campo">
+            <label>Temperatura (°C)</label>
+            <input
+              type="number"
+              step="0.1"
+              [(ngModel)]="historia.temperatura_c"
+              placeholder="Ej: 36.7"
+            />
+          </div>
+
+          <div class="campo">
+            <label>Presión</label>
+            <input type="text" [(ngModel)]="historia.presion" placeholder="Ej: 120/80" />
+          </div>
+
+          <div class="extras">
+            <h4>Datos adicionales (máx. 3)</h4>
+            <div *ngFor="let e of extras; let i = index" class="fila-extra">
+              <input type="text" [(ngModel)]="e.clave" placeholder="Clave (ej: caries)" />
+              <input type="text" [(ngModel)]="e.valor" placeholder="Valor (ej: 4)" />
+            </div>
+            <button type="button" class="btn-add" (click)="agregarExtra()">+ Agregar campo</button>
+
+            <div class="comentario-section">
+              <label for="comentario" class="comentario-label">
+                Comentario para el paciente:
+              </label>
+              <textarea
+                id="comentario"
+                [(ngModel)]="comentarioAccion"
+                placeholder="Escribí aquí un comentario o recomendación para el paciente..."
+                rows="3"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #comentarioSimple>
+        <p class="mensaje">
+          Por favor, explicá brevemente el motivo de la {{ accionLabel | lowercase }}:
+        </p>
+        <textarea
+          [(ngModel)]="comentarioAccion"
+          placeholder="Escribí tu comentario aquí..."
+          rows="4"
+          class="campo-texto"
+        ></textarea>
+      </ng-template>
 
       <div class="modal-actions">
         <button class="btn-confirmar" (click)="confirmarAccion()">Confirmar</button>

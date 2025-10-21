@@ -1,0 +1,57 @@
+.pacientes-especialista {
+  padding: 1rem;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .input-busqueda {
+    display: block;
+    margin: 0 auto 1rem;
+    padding: 0.5rem;
+    width: 80%;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+
+  .lista-pacientes {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .paciente-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  button {
+    margin-top: 0.5rem;
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .detalle-historia {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .volver {
+    background: #e57373;
+    margin-bottom: 1rem;
+  }
+
+  .item-historia {
+    border-top: 1px solid #ddd;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+}

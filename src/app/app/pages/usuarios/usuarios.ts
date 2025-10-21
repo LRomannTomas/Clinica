@@ -14,7 +14,8 @@ import { Almacenamiento } from '../../core/servicios/almacenamiento';
 import { Router } from '@angular/router';
 import { ToastService } from '../../core/servicios/toast';
 import { HeaderPropio } from '../../compartido/components/header/headerPropio';
-
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-usuarios',
@@ -138,31 +139,67 @@ export class Usuarios implements OnInit {
   }
 
   async eliminarUsuario(usuario: any) {
-  if (!confirm(`¿Seguro que querés eliminar al usuario ${usuario.nombre}?`)) return;
+    if (!confirm(`¿Seguro que querés eliminar al usuario ${usuario.nombre}?`)) return;
 
-  try {
-    if (usuario.perfil === 'paciente') {
-      await supabase.from('pacientes').delete().eq('id', usuario.id);
-    } else if (usuario.perfil === 'especialista') {
-      await supabase.from('especialistas').delete().eq('id', usuario.id);
+    try {
+      if (usuario.perfil === 'paciente') {
+        await supabase.from('pacientes').delete().eq('id', usuario.id);
+      } else if (usuario.perfil === 'especialista') {
+        await supabase.from('especialistas').delete().eq('id', usuario.id);
+      }
+
+      await supabase.from('usuarios').delete().eq('id', usuario.id);
+
+      await fetch('https://ubeppzmaerryzknxqjso.supabase.co/functions/v1/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: usuario.id }),
+      });
+
+      this.toast.show('Usuario eliminado correctamente.', 'success');
+      this.usuarios = this.usuarios.filter((u) => u.id !== usuario.id);
+    } catch (err) {
+      console.error(err);
+      this.toast.show('Error al eliminar usuario.', 'error');
     }
-
-    await supabase.from('usuarios').delete().eq('id', usuario.id);
-
-    await fetch('https://ubeppzmaerryzknxqjso.supabase.co/functions/v1/delete-user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: usuario.id }),
-    });
-
-    this.toast.show('Usuario eliminado correctamente.', 'success');
-    this.usuarios = this.usuarios.filter(u => u.id !== usuario.id);
-  } catch (err) {
-    console.error(err);
-    this.toast.show('Error al eliminar usuario.', 'error');
   }
-}
 
+  async descargarExcel() {
+    try {
+      if (!this.usuarios || this.usuarios.length === 0) {
+        this.toast.show('No hay usuarios para exportar.', 'info');
+        return;
+      }
+
+      const datos = this.usuarios.map((u) => ({
+        ID: u.id,
+        Nombre: u.nombre,
+        Apellido: u.apellido,
+        Email: u.email,
+        Perfil: u.perfil,
+        Edad: u.edad ?? '-',
+        DNI: u.dni ?? '-',
+        Aprobado: u.perfil === 'especialista' ? (u.aprobado ? 'Sí' : 'No') : '-',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(datos);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Usuarios');
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const fecha = new Date().toISOString().split('T')[0];
+      saveAs(blob, `usuarios_clinica_${fecha}.xlsx`);
+
+      this.toast.show('Archivo Excel descargado correctamente.', 'success');
+    } catch (err) {
+      console.error(err);
+      this.toast.show('Error al generar el archivo Excel.', 'error');
+    }
+  }
 
   scrollCarrusel(direccion: 'izquierda' | 'derecha') {
     const carrusel = document.querySelector('.carrusel');
@@ -227,9 +264,7 @@ export class Usuarios implements OnInit {
 
     let especialidadesFinal: string[] = [];
     if (perfil === 'especialista') {
-      let seleccionadas = this.especialidadesSeleccionadas.filter(
-        (esp) => esp !== 'Otra'
-      );
+      let seleccionadas = this.especialidadesSeleccionadas.filter((esp) => esp !== 'Otra');
 
       if (this.mostrarOtraEspecialidad && this.nuevaEspecialidad.trim()) {
         const adicionales = this.nuevaEspecialidad
@@ -245,7 +280,6 @@ export class Usuarios implements OnInit {
       }
 
       especialidadesFinal = seleccionadas;
-
     }
 
     this.loading = true;
@@ -285,11 +319,11 @@ export class Usuarios implements OnInit {
           fotos_url: fotoUrls,
         });
       } else if (perfil === 'especialista') {
-          await supabase.from('especialistas').insert({
-            id: userId,
-            especialidad: especialidadesFinal,
-            foto_url: fotoUrls[0] ?? null,
-          });
+        await supabase.from('especialistas').insert({
+          id: userId,
+          especialidad: especialidadesFinal,
+          foto_url: fotoUrls[0] ?? null,
+        });
       }
 
       this.toast.show('Usuario creado correctamente.', 'success');

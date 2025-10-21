@@ -6,9 +6,9 @@
   <div class="filtros">
     <input
       type="text"
-      placeholder="Filtrar por especialidad o especialista..."
+      placeholder="Buscar por nombre, especialidad o dato clínico..."
       [(ngModel)]="filtro"
-      (input)="aplicarFiltro()"
+      (input)="aplicarFiltroConDebounce()"
     />
   </div>
 
@@ -58,7 +58,7 @@
     <p style="text-align: center; color: #888">No hay turnos registrados.</p>
   </ng-template>
 
-  <div class="modal-overlay" *ngIf="mostrarModalResena">
+  <div class="modal-overlay" *ngIf="mostrarModalResena" @zoomInOut>
     <div class="modal-contenido">
       <h3>
         🩺
@@ -97,7 +97,7 @@
     </div>
   </div>
 
-  <div class="modal-overlay" *ngIf="mostrarModalAccion">
+  <div class="modal-overlay" *ngIf="mostrarModalAccion" @zoomInOut>
     <div class="modal-cancelacion">
       <div>
         <h3>{{ getAccionTitulo(accionPendiente) }}</h3>
@@ -122,7 +122,7 @@
     </div>
   </div>
 
-  <div class="modal-overlay" *ngIf="mostrarModalEvaluacion">
+  <div class="modal-overlay" *ngIf="mostrarModalEvaluacion" @zoomInOut>
     <div class="modal-contenido encuesta">
       <h3>🩺 Evaluar Atención</h3>
 
