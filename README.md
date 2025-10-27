@@ -1,16 +1,17 @@
 # 🏥 Clínica Online
 
-Aplicación web desarrollada en **Angular + Supabase**, que permite la gestión integral de una clínica médica, incluyendo registro de usuarios, manejo de turnos, control de disponibilidad de especialistas, carga de historias clínicas y un sistema de acceso segmentado por rol (Administrador, Especialista, Paciente).
+Aplicación web desarrollada en **Angular + Supabase**, que permite la gestión integral de una clínica médica, incluyendo registro de usuarios, manejo de turnos, control de disponibilidad de especialistas, carga de historias clínicas, estadísticas visuales y un sistema de acceso segmentado por rol (**Administrador**, **Especialista**, **Paciente**).
 
 ---
 
 ## 🚀 Tecnologías utilizadas
 
-- **Angular 17+** → componentes standalone, formularios reactivos, pipes, modales y navegación moderna.  
-- **Supabase** → PostgreSQL, autenticación, storage de imágenes y políticas RLS seguras.  
+- **Angular 17+** → componentes standalone, formularios reactivos, pipes, directivas y animaciones modernas.  
+- **Supabase** → PostgreSQL, autenticación, storage de imágenes, triggers y políticas RLS seguras.  
 - **SCSS modular** → estilos consistentes con diseño médico, moderno y responsive.  
-- **Google reCAPTCHA** → validación antispam en el registro.  
-- **jsPDF + jsPDF-AutoTable** → generación profesional de informes en PDF (historias clínicas).  
+- **Google reCAPTCHA v2** → validación antispam durante el registro.  
+- **Chart.js + jsPDF + XLSX** → visualización y exportación de estadísticas administrativas.  
+- **jsPDF-AutoTable** → generación profesional de informes clínicos en PDF.  
 - **ToastService personalizado** → notificaciones visuales (éxito, error, información).  
 
 ---
@@ -19,7 +20,7 @@ Aplicación web desarrollada en **Angular + Supabase**, que permite la gestión 
 
 | Rol | Funcionalidades principales |
 |-----|------------------------------|
-| **Administrador** | Gestiona usuarios, aprueba especialistas, controla turnos y accede a todas las historias clínicas. |
+| **Administrador** | Gestiona usuarios, aprueba especialistas, visualiza estadísticas, controla turnos y accede a todas las historias clínicas. |
 | **Especialista** | Define disponibilidad horaria, atiende pacientes, completa historias clínicas y visualiza reseñas de atenciones. |
 | **Paciente** | Solicita turnos, deja evaluaciones, visualiza y descarga sus historias clínicas en PDF. |
 
@@ -27,139 +28,121 @@ Aplicación web desarrollada en **Angular + Supabase**, que permite la gestión 
 
 ## 🧭 Navegación general
 
-La aplicación cuenta con un encabezado dinámico (`HeaderPropio`) que se adapta al rol del usuario logueado y muestra las rutas correspondientes.
+La aplicación cuenta con un **encabezado dinámico (`HeaderPropio`)** que se adapta al rol del usuario logueado, mostrando solo las secciones permitidas.
 
 | Ruta | Descripción | Acceso |
 |------|--------------|--------|
-| `/login` | Pantalla de inicio de sesión. | Todos |
-| `/registro` | Registro con verificación de reCAPTCHA. | Todos |
-| `/mi-perfil` | Configuración de horarios del especialista. | Especialistas |
-| `/solicitar-turno` | Solicitud de turnos paso a paso. | Pacientes |
+| `/login` | Inicio de sesión. | Todos |
+| `/registro` | Registro con reCAPTCHA. | Todos |
+| `/mi-perfil` | Configuración horaria. | Especialista |
+| `/solicitar-turno` | Solicitud de turnos guiada. | Paciente |
 | `/turnos-admin` | Gestión completa de turnos. | Administrador |
 | `/usuarios` | Aprobación y gestión de usuarios. | Administrador |
-| `/historia-clinica` | Visualización y descarga de historia clínica. | Pacientes |
-| `/historia-clinica-especialista` | Lista de pacientes atendidos y sus historias. | Especialistas |
-| `/historia-clinica-admin` | Consulta global de historias clínicas. | Administrador |
+| `/historia-clinica` | Visualización y descarga del historial. | Paciente |
+| `/historia-clinica-especialista` | Lista de pacientes atendidos. | Especialista |
+| `/historia-clinica-admin` | Consulta global de historias. | Administrador |
+| `/estadisticas-admin` | Panel de estadísticas interactivas con exportación a PDF y Excel. | Administrador |
 
 ---
 
-## 🖥️ Pantallas y secciones
+## 🖥️ Pantallas principales
 
-### 🩺 **Pantalla de Registro**
-- Permite elegir tipo de usuario: **Paciente** o **Especialista**.  
-- Registro de **Paciente**:
-  - Nombre, apellido, edad, DNI, obra social, email, contraseña.
-  - Subida de **dos imágenes** (frente y dorso del DNI).  
-- Registro de **Especialista**:
-  - Datos personales, foto de perfil, selección de una o varias especialidades.
-  - Posibilidad de agregar “Otra especialidad”.  
-- Validación con **reCAPTCHA** antes de confirmar.  
-- Los especialistas quedan **pendientes de aprobación** por el administrador.  
+### 🔐 Login
+Pantalla inicial para autenticarse en el sistema.  
+![Pantalla de Login](./src/assets/screenshots/login.jpeg)
 
----
 
-### 👨‍⚕️ **Mi Perfil (Especialista)**
-- Configuración de **disponibilidad horaria** (día, hora de inicio y fin).  
-- Activación o desactivación de horarios guardados.  
-- Gestión paso a paso:
-  1. Selección de especialidad.  
-  2. Día de la semana.  
-  3. Rango horario.  
-  4. Confirmación y guardado.  
+### 🧾 Registro
+Permite elegir el tipo de usuario (**Paciente** o **Especialista**).  
+- Formulario validado con **reCAPTCHA v2**.  
+- Campos específicos según el tipo de usuario.  
+- Subida de imágenes (DNI o perfil).  
+![Pantalla de Registro](./src/assets/registro_1.jpeg)
+![Pantalla de Registro](./src/assets/registro_2.jpeg)
+![Pantalla de Registro](./src/assets/registro_3.jpeg)
+![Pantalla de Registro](./src/assets/captcha.jpeg)
 
----
+### 👨‍⚕️ Mi Perfil (Especialista)
+Configuración de horarios de atención por especialidad, día y hora.  
 
-### 📅 **Solicitar Turno**
-- Flujo guiado e intuitivo:
-  1. Seleccionar especialidad.  
-  2. Elegir especialista (filtrado).  
-  3. Escoger fecha (15 días hábiles siguientes).  
-  4. Seleccionar horario disponible.  
-  5. Confirmar turno.  
-- El **Administrador** puede seleccionar manualmente al paciente.  
-- Integración completa con `horarios_especialistas` en Supabase.  
+![Pantalla de Especialista](./src/assets/mis-turnos-especialista.jpeg)
 
----
+### 📅 Solicitar Turno
+Flujo paso a paso para que el paciente seleccione especialidad, especialista, fecha y horario disponible.  
 
-### 🧾 **Turnos (Administrador)**
-- Listado general de todos los turnos.  
-- **Filtros** por especialidad o especialista.  
-- Cada turno muestra:
-  - Paciente, especialista, fecha, hora y estado.  
-- Posibilidad de **cancelar** turnos con justificación (modal elegante).  
-- No se permite cancelar turnos con estado *Aceptado*, *Realizado* o *Rechazado*.  
+### 🧑‍💼 Usuarios (Administrador)
+Gestión de usuarios registrados con posibilidad de aprobar o eliminar especialistas.  
+![Pantalla de Usuarios](./src/assets/usuarios-admin.jpeg)
+
+### 📊 Estadísticas Administrativas
+Gráficos interactivos para el administrador generados con **Chart.js**:
+
+- Turnos por Especialidad  
+- Turnos por Día  
+- Turnos Solicitados / Realizados (últimos 30 días)  
+- Log de Ingresos al Sistema  
+
+Incluye exportación a PDF y Excel.  
+![Pantalla de Estadisticas](./src/assets/estadisticas-admin.jpeg)
 
 ---
 
-### 👩‍💻 **Usuarios (Administrador)**
-- Vista completa de usuarios registrados.  
-- Especialistas nuevos aparecen como “Pendientes de aprobación”.  
-- Aprobación o rechazo con un clic.  
-- Visualización de datos e imágenes cargadas.  
+## 🧩 Pipes implementados
+
+| Pipe | Descripción | Uso |
+|------|--------------|-----|
+| `NombreCompletoPipe` | Devuelve `Apellido, Nombre` o `Nombre Apellido` evitando valores vacíos. | En listados de usuarios e historias clínicas. |
+| `DniPipe` | Formatea el número de DNI con puntos (`12345678` → `12.345.678`). | En vistas de usuario y formularios. |
+| `EmptyPipe` | Reemplaza valores nulos o vacíos por un texto predeterminado (`—`, `Sin dato`, etc.). | En historias clínicas y datos opcionales. |
 
 ---
 
-## 🩺 **Historia Clínica**
+## ⚙️ Directivas personalizadas
 
-Sistema completo de **registro y visualización médica**, implementado para especialistas, pacientes y administradores.
+| Directiva | Función | Aplicación |
+|------------|----------|-------------|
+| `BotonColorDirective` | Cambia dinámicamente el color y estilo de botones según su tipo (`ver`, `cancelar`, `motivo`, etc.). | Botones de acción en paneles y modales. |
+| `OnlyNumberDirective` | Restringe campos de entrada para aceptar solo números. | Campos `edad`, `dni`, etc. |
+| `AutoFocusDirective` | Aplica foco automático al primer campo visible del formulario. | Formularios de registro y búsqueda. |
 
-### 👨‍⚕️ **Vista del Especialista**
-- Lista automática de pacientes que haya atendido al menos una vez.  
-- Al presionar “Ver historias”, se abre un **modal estético** con:
-  - Especialidad, fecha, altura, peso, temperatura y presión.  
-  - Datos adicionales cargados durante la atención.  
-- Fechas mostradas en **idioma español** y diseño consistente.  
+---
 
-### 🧑‍💼 **Vista del Administrador**
-- Acceso total a todas las historias clínicas registradas.  
-- **Buscador avanzado** con filtro por nombre, especialidad o valores clínicos.  
-- Diseño con tarjetas limpias y legibles.
+## 🩺 Historia Clínica
 
-### 🧍‍♂️ **Vista del Paciente**
-- Muestra todas sus atenciones médicas en tarjetas informativas.  
-- Cada historia incluye:
-  - Datos fijos (altura, peso, temperatura, presión).  
-  - Datos dinámicos (extras definidos por el especialista).  
-- Botón flotante circular con ícono `pdf.png` que permite **descargar la historia clínica completa en PDF**.
+Sistema completo de registro médico implementado para **especialistas, pacientes y administradores**.
 
-#### 📄 Exportación a PDF
-- Implementada con **jsPDF + autoTable**.  
-- Incluye:
-  - Logo de la clínica.  
-  - Título del informe y fecha de emisión.  
-  - Tabla centrada con datos médicos y campos adicionales resaltados en color.  
-  - Separador visual entre historias.  
-- Estilo profesional y centrado, manteniendo armonía visual.
+- Datos fijos: altura, peso, temperatura y presión.  
+- Campos dinámicos (`extras`) definidos por el especialista.  
+- Visualización en modales estéticos y descargable en PDF.
+
+![Pantalla de Historia Clinica](./src/assets/historia-clinica-paciente.jpeg)
+
+### 📄 Exportación PDF
+Generado con **jsPDF + AutoTable**:
+- Logo institucional y fecha de emisión.  
+- Tablas con formato centrado y colores institucionales.  
+- Separadores visuales entre registros.
 
 ---
 
 ## 💬 Evaluaciones y reseñas
-- El paciente puede completar una **encuesta** tras su atención:
-  - Puntuación, satisfacción, recomendación y comentario.  
-- El especialista y el paciente pueden visualizar posteriormente la reseña completa.  
-- Mostradas en **modal animado**, con formato estructurado y traducción de fecha al español.  
 
----
-
-## 🔍 Sistema de búsqueda inteligente
-- **Filtro con debounce (500 ms)** para evitar consultas continuas.  
-- Permite buscar por:
-  - Nombre, especialidad, estado o cualquier dato médico.  
-  - Campos dinámicos dentro de las historias clínicas.  
-- Disponible para pacientes, especialistas y administradores.
+- El paciente puede dejar una reseña luego de su atención.  
+- El especialista puede leer la reseña desde su panel.  
+- Muestra puntuación, satisfacción y comentarios.  
 
 ---
 
 ## 🎨 Diseño y estética general
 
-- Paleta médica profesional:
+- Paleta profesional:  
   - 🟩 Verde azulado: `#2a9d8f`  
   - 🟦 Azul oscuro: `#264653`  
   - 🟥 Rojo coral: `#e76f51`
-- Estilo moderno, limpio y armonioso.  
-- Botones circulares flotantes (para PDF y Excel).  
+- Estilo moderno, limpio y responsive.  
 - Animaciones suaves (`fadeSlide`, `zoomInOut`).  
-- Totalmente responsive y optimizado para Vercel.
+- Botones flotantes para exportaciones (PDF, Excel).  
+
 
 ---
 
@@ -167,16 +150,27 @@ Sistema completo de **registro y visualización médica**, implementado para esp
 
 1. Registro con reCAPTCHA.  
 2. Aprobación de especialista por el administrador.  
-3. Paciente solicita turno.  
-4. Especialista gestiona su agenda.  
-5. Turno finalizado → Historia clínica + evaluación del paciente.  
-6. Paciente puede descargar su historial completo en PDF.  
+3. Solicitud de turno del paciente.  
+4. Atención por parte del especialista.  
+5. Generación de historia clínica y reseña.  
+6. Exportación de datos e informes.  
+
 
 ---
 
 ## ⚙️ Ejecución local
 
-1. Clonar el repositorio  
-   ```bash
-   git clone https://github.com/LRomannTomas/clinica.git
-   cd clinica-online
+```bash
+# 1️⃣ Clonar el repositorio
+git clone https://github.com/LRomannTomas/Clinica.git
+cd Clinica
+
+# 2️⃣ Instalar dependencias
+npm install
+
+# 3️⃣ Configurar entorno Supabase (src/environments)
+#    - url
+#    - anon key
+
+# 4️⃣ Ejecutar en desarrollo
+ng serve
