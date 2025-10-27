@@ -84,6 +84,13 @@ export const routes: Routes = [
       (m) => m.HistoriaClinicaAdmin
     ),
 },
+{
+  path: 'estadisticas-admin',
+  loadComponent: () =>
+    import('./app/pages/estadisticas-admin/estadisticas-admin').then(
+      (m) => m.EstadisticasAdmin
+    ),
+},
 
 
   { path: '**', redirectTo: '' },

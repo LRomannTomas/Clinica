@@ -50,10 +50,9 @@ export class MiPerfilPaciente implements OnInit {
       }
 
       const doc = new jsPDF();
-      const logo = '/assets/images/logo-clinica.png'; // 🔸 agregá tu logo aquí
+      const logo = '/assets/images/logo-clinica.png'; 
       const fecha = new Date().toLocaleDateString('es-AR');
 
-      // Logo (si existe)
       try {
         const img = await fetch(logo);
         const blob = await img.blob();
@@ -69,7 +68,6 @@ export class MiPerfilPaciente implements OnInit {
         console.warn('Logo no encontrado, se omitirá en el PDF');
       }
 
-      // Encabezado
       doc.setFontSize(16);
       doc.text('Historia Clínica del Paciente', 105, 20, { align: 'center' });
       doc.setFontSize(11);
@@ -82,7 +80,6 @@ export class MiPerfilPaciente implements OnInit {
       );
       doc.line(15, 40, 195, 40);
 
-      // Tabla
       const filas = this.historiaClinica.flatMap((h) => {
         const extras = (h.extras || []).map((e: any) => `${e.clave}: ${e.valor}`).join(', ');
         return [

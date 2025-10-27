@@ -4,9 +4,24 @@ import { supabase } from '../supabase/supabase.client';
 @Injectable({ providedIn: 'root' })
 export class Auth {
 
-  signIn(email: string, password: string) {
-    return supabase.auth.signInWithPassword({ email, password });
+  async signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) return { data: null, error }; // 👈 mantener estructura esperada
+
+  // ✅ Registrar el ingreso si el login fue exitoso
+  const user = data.user;
+  if (user) {
+    const { error: logError } = await supabase.from('log_ingresos').insert({
+      usuario_id: user.id,
+      email: user.email,
+      fecha: new Date().toISOString(),
+    });
+    if (logError) console.error('Error al registrar log de ingreso:', logError.message);
   }
+
+  return { data, error: null }; // 👈 se devuelve con el mismo formato que antes
+}
 
 
   signUp(email: string, password: string, metadata: any = {}) {
@@ -14,7 +29,7 @@ export class Auth {
       email,
       password,
       options: {
-        data: metadata, 
+        data: metadata,
       },
     });
   }
@@ -22,7 +37,6 @@ export class Auth {
   signOut() {
     return supabase.auth.signOut();
   }
-
 
   async getSession() {
     const { data, error } = await supabase.auth.getSession();
@@ -32,7 +46,6 @@ export class Auth {
     }
     return data.session ?? null;
   }
-
 
   onAuth(cb: Parameters<typeof supabase.auth.onAuthStateChange>[0]) {
     return supabase.auth.onAuthStateChange(cb);
@@ -46,7 +59,6 @@ export class Auth {
     }
     return data.user ?? null;
   }
-
 
   async updateUserMetadata(metadata: any) {
     const { data, error } = await supabase.auth.updateUser({

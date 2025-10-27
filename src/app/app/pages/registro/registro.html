@@ -3,7 +3,7 @@
 <div class="captcha-overlay" *ngIf="mostrarCaptcha">
   <div class="captcha-card">
     <h3>Verificación de seguridad</h3>
-    <ngx-recaptcha2 [siteKey]="siteKey" (success)="onCaptchaResolved($event)"> </ngx-recaptcha2>
+    <ngx-recaptcha2 [siteKey]="siteKey" (success)="onCaptchaResolved($event)"></ngx-recaptcha2>
     <button class="btn-cancelar" (click)="mostrarCaptcha = false">Cancelar</button>
   </div>
 </div>
@@ -32,10 +32,12 @@
       <button class="btn-volver" type="button" (click)="volver()">← Volver</button>
       <h2>Registro de Paciente</h2>
 
-      <input formControlName="nombre" placeholder="Nombre" />
+      <input formControlName="nombre" placeholder="Nombre" appAutoFocus />
       <input formControlName="apellido" placeholder="Apellido" />
-      <input type="number" formControlName="edad" placeholder="Edad" />
-      <input formControlName="dni" placeholder="DNI" />
+
+      <input type="text" formControlName="edad" placeholder="Edad" appOnlyNumber />
+      <input type="text" formControlName="dni" placeholder="DNI" appOnlyNumber />
+
       <input formControlName="obra_social" placeholder="Obra Social" />
       <input type="email" formControlName="email" placeholder="Email" />
       <input type="password" formControlName="password" placeholder="Contraseña" />
@@ -59,10 +61,10 @@
       <button class="btn-volver" type="button" (click)="volver()">← Volver</button>
       <h2>Registro de Especialista (1/2)</h2>
 
-      <input formControlName="nombre" placeholder="Nombre" />
+      <input formControlName="nombre" placeholder="Nombre" appAutoFocus />
       <input formControlName="apellido" placeholder="Apellido" />
-      <input type="number" formControlName="edad" placeholder="Edad" />
-      <input formControlName="dni" placeholder="DNI" />
+      <input type="text" formControlName="edad" placeholder="Edad" appOnlyNumber />
+      <input type="text" formControlName="dni" placeholder="DNI" appOnlyNumber />
       <input type="email" formControlName="email" placeholder="Email" />
       <input type="password" formControlName="password" placeholder="Contraseña" />
 
@@ -119,9 +121,10 @@
           *ngIf="mostrarOtraEspecialidad"
           [(ngModel)]="nuevaEspecialidad"
           placeholder="(Ejemplo: Gastroenterología, Pediatría)"
+          appAutoFocus
         />
         <small *ngIf="mostrarOtraEspecialidad" class="info-ayuda">
-          -------------------Podes ingresar más de una, separadas por comas-------------------
+          -------------------Podés ingresar más de una, separadas por comas-------------------
         </small>
       </div>
 

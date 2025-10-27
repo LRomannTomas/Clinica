@@ -16,13 +16,18 @@ import { ToastService } from '../../core/servicios/toast';
 import { HeaderPropio } from '../../compartido/components/header/headerPropio';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { Turnos } from '../../core/servicios/turnos';
+import { NombreCompletoPipe } from '../../compartido/pipes/nombre-completo-pipe';
+import { DniPipe } from '../../compartido/pipes/dni-pipe';
+import { EmptyPipe } from '../../compartido/pipes/empty-pipe';
+import { BotonColorDirective } from '../../compartido/directivas/boton-color';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
   templateUrl: './usuarios.html',
   styleUrls: ['./usuarios.scss'],
-  imports: [CommonModule, ReactiveFormsModule, Loading, FormsModule, HeaderPropio],
+  imports: [CommonModule, ReactiveFormsModule, Loading, FormsModule, HeaderPropio,NombreCompletoPipe, DniPipe, EmptyPipe, BotonColorDirective],
 })
 export class Usuarios implements OnInit {
   vista: 'tabla' | 'tipo' | 'form' = 'tabla';
@@ -31,6 +36,10 @@ export class Usuarios implements OnInit {
   usuarios: any[] = [];
   loading = false;
   mensaje = '';
+
+  mostrarModal = false;
+  pacienteSeleccionado: any = null;
+  historiasSeleccionadas: any[] = [];
 
   especialidades = [
     { nombre: 'Cardiología', archivo: 'cardiologia.png' },
@@ -52,7 +61,9 @@ export class Usuarios implements OnInit {
     private auth: Auth,
     private almacenamiento: Almacenamiento,
     private router: Router,
-    private toast: ToastService
+    private toast: ToastService,
+    private turnosSrv: Turnos,
+
   ) {}
 
   ngOnInit() {
@@ -71,25 +82,83 @@ export class Usuarios implements OnInit {
     this.cargarUsuarios();
   }
 
-  async cargarUsuarios() {
-    this.loading = true;
-    this.mensaje = '';
-    try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .order('perfil', { ascending: true });
 
-      if (error) throw error;
-      this.usuarios = data || [];
-      if (this.usuarios.length === 0) this.mensaje = 'No hay usuarios registrados.';
-    } catch (err) {
-      console.error(err);
-      this.mensaje = 'Error al cargar los usuarios.';
-    } finally {
-      this.loading = false;
-    }
+  async verHistoria(paciente: any) {
+  this.loading = true;
+  try {
+    const historias = await this.turnosSrv.getHistoriaPorPaciente(paciente.id);
+    this.historiasSeleccionadas = historias;
+    this.pacienteSeleccionado = paciente;
+    this.mostrarModal = true;
+  } catch (err) {
+    console.error(err);
+    this.toast.show('Error al cargar la historia clínica.', 'error');
+  } finally {
+    this.loading = false;
   }
+}
+
+cerrarModal() {
+  this.mostrarModal = false;
+  this.historiasSeleccionadas = [];
+  this.pacienteSeleccionado = null;
+}
+
+  async cargarUsuarios() {
+  this.loading = true;
+  this.mensaje = '';
+  try {
+    const { data: usuarios, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .order('perfil', { ascending: true });
+
+    if (error) throw error;
+    if (!usuarios || usuarios.length === 0) {
+      this.usuarios = [];
+      this.mensaje = 'No hay usuarios registrados.';
+      return;
+    }
+
+    const usuariosConFotos = await Promise.all(
+      usuarios.map(async (u: any) => {
+        let foto = null;
+
+        if (u.perfil === 'especialista') {
+          const { data: esp } = await supabase
+            .from('especialistas')
+            .select('foto_url')
+            .eq('id', u.id)
+            .single();
+
+          foto = esp?.foto_url || 'assets/images/medico.png';
+        } 
+        else if (u.perfil === 'paciente') {
+          const { data: pac } = await supabase
+            .from('pacientes')
+            .select('fotos_url')
+            .eq('id', u.id)
+            .single();
+
+          foto = pac?.fotos_url?.[0] || 'assets/images/paciente.png';
+        } 
+        else if (u.perfil === 'admin') {
+          foto = 'assets/images/admin.png';
+        }
+
+        return { ...u, foto };
+      })
+    );
+
+    this.usuarios = usuariosConFotos;
+  } catch (err) {
+    console.error(err);
+    this.mensaje = 'Error al cargar los usuarios.';
+  } finally {
+    this.loading = false;
+  }
+}
+
 
   irA(vista: 'tabla' | 'tipo' | 'form') {
     this.vista = vista;

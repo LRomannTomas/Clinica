@@ -1,57 +1,116 @@
 <app-HeaderPropio></app-HeaderPropio>
 
 <section class="usuarios">
-  
   <ng-container *ngIf="vista === 'tabla'">
-
-    <h2>Gestión de Usuarios</h2>
+    <h2>👥 Gestión de Usuarios</h2>
 
     <app-loading *ngIf="loading"></app-loading>
-
     <p *ngIf="mensaje && !loading">{{ mensaje }}</p>
 
-    <button class="nuevo-btn" (click)="irA('tipo')">+ Crear Usuario +</button>
+    <button class="nuevo-btn" appBotonColor="ver" (click)="irA('tipo')">
+      + Crear Usuario +
+    </button>
 
-    <div class="excel-btn-container">
-  <button class="btn-descargar" (click)="descargarExcel()" title="Descargar Excel">
-    <img src="assets/images/excel-icono.png" alt="Descargar Excel" />
-  </button>
-</div>
+    <div *ngIf="!loading && usuarios.length > 0; else vacio" class="lista-usuarios">
+      <div *ngFor="let u of usuarios" class="usuario-card">
+        <div class="info">
+          <div class="img-container">
+            <img
+              [src]="u.foto | empty:'assets/images/default-user.png'"
+              alt="{{ u.nombre }}"
+              class="avatar"
+            />
+          </div>
 
-    <table *ngIf="!loading && usuarios.length > 0">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Perfil</th>
-          <th>Email</th>
-          <th>Aprobado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let u of usuarios">
-          <td>{{ u.nombre }} {{ u.apellido }}</td>
-          <td>{{ u.perfil }}</td>
-          <td>{{ u.email }}</td>
-          <td>
-            <span *ngIf="u.perfil === 'especialista'">
-              {{ u.aprobado ? 'Sí' : 'No' }}
-            </span>
-            <span *ngIf="u.perfil !== 'especialista'">-</span>
-          </td>
-          <td class="acciones">
-            <button *ngIf="u.perfil === 'especialista'" (click)="toggleAprobado(u)">
-              {{ u.aprobado ? 'Inhabilitar' : 'Aprobar' }}
-            </button>
-            <button (click)="eliminarUsuario(u)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          <div class="datos">
+            <h3>{{ u | nombreCompleto }}</h3>
+            <p><strong>Perfil:</strong> {{ u.perfil | titlecase }}</p>
+            <p><strong>Email:</strong> {{ u.email | empty:'Sin email' }}</p>
+            <p><strong>DNI:</strong> {{ u.dni | dni }}</p>
+
+            <p *ngIf="u.perfil === 'especialista'">
+              <strong>Aprobado:</strong> {{ u.aprobado ? 'Sí ✅' : 'No ❌' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="acciones">
+          <button
+            *ngIf="u.perfil === 'especialista'"
+            appBotonColor="ver"
+            (click)="toggleAprobado(u)"
+          >
+            {{ u.aprobado ? 'Inhabilitar' : 'Aprobar' }}
+          </button>
+
+          <button appBotonColor="cancelar" (click)="eliminarUsuario(u)">
+            Eliminar
+          </button>
+
+          <button
+            *ngIf="u.perfil === 'paciente'"
+            appBotonColor="motivo"
+            (click)="verHistoria(u)"
+          >
+            📋 Ver historia clínica
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #vacio>
+      <p class="vacio">No hay usuarios registrados.</p>
+    </ng-template>
+
+    <div class="modal-overlay" *ngIf="mostrarModal">
+      <div class="modal-contenido">
+        <div class="modal-header">
+          <h3>
+            📋 Historias de {{ pacienteSeleccionado | nombreCompleto }}
+          </h3>
+        </div>
+
+        <div *ngIf="historiasSeleccionadas.length > 0; else sinHistorias" class="modal-body">
+          <div *ngFor="let h of historiasSeleccionadas" class="historia-card">
+            <div class="cabecera">
+              <div>
+                <h4>{{ h.turnos?.especialidad | empty:'Sin especialidad' }}</h4>
+                <span class="fecha">{{ h.turnos?.fecha | date:'longDate':'':'es' }}</span>
+              </div>
+            </div>
+
+            <div class="datos-fijos">
+              <p><strong>Altura:</strong> {{ h.altura_cm | empty:'—' }} cm</p>
+              <p><strong>Peso:</strong> {{ h.peso_kg | empty:'—' }} kg</p>
+              <p><strong>Temperatura:</strong> {{ h.temperatura_c | empty:'—' }} °C</p>
+              <p><strong>Presión:</strong> {{ h.presion | empty:'—' }}</p>
+            </div>
+
+            <div *ngIf="h.extras?.length > 0" class="extras">
+              <h5>🩺 Datos adicionales</h5>
+              <ul>
+                <li *ngFor="let e of h.extras">
+                  <strong>{{ e.clave | empty:'—' }}:</strong>
+                  {{ e.valor | empty:'—' }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #sinHistorias>
+          <p class="sin-historias">Este paciente no tiene historias registradas.</p>
+        </ng-template>
+
+        <div class="modal-footer">
+          <button appBotonColor="cancelar" (click)="cerrarModal()">Cerrar</button>
+        </div>
+      </div>
+    </div>
   </ng-container>
 
   <ng-container *ngIf="vista === 'tipo'">
-    <button class="btn-volver" (click)="volverAlInicio()">← Volver</button>
+    <button class="btn-volver" appBotonColor="cancelar" (click)="volverAlInicio()">← Volver</button>
     <h2>Seleccioná el tipo de usuario</h2>
 
     <div class="opciones-perfil">
@@ -71,7 +130,7 @@
   </ng-container>
 
   <ng-container *ngIf="vista === 'form'">
-    <button class="btn-volver" (click)="volverASeleccion()">← Volver</button>
+    <button class="btn-volver" appBotonColor="cancelar" (click)="volverASeleccion()">← Volver</button>
     <h2>Crear {{ tipoSeleccionado | titlecase }}</h2>
 
     <form [formGroup]="form" (ngSubmit)="crearUsuario()">
@@ -87,39 +146,6 @@
             *ngIf="tipoSeleccionado === 'paciente'"
             formControlName="obra_social"
             placeholder="Obra Social"
-          />
-        </div>
-
-        <div *ngIf="tipoSeleccionado === 'especialista'" class="especialidades-container">
-          <h3>Seleccioná tus especialidades</h3>
-
-          <div class="carrusel-wrapper">
-            <button class="flecha izquierda" type="button" (click)="scrollCarrusel('izquierda')">
-              ‹
-            </button>
-
-            <div class="carrusel">
-              <div
-                *ngFor="let esp of especialidades"
-                class="opcion"
-                [class.seleccionado]="especialidadesSeleccionadas.includes(esp.nombre)"
-                (click)="toggleEspecialidad(esp.nombre)"
-              >
-                <img [src]="'assets/images/' + esp.archivo" [alt]="esp.nombre" />
-                <span>{{ esp.nombre }}</span>
-              </div>
-            </div>
-
-            <button class="flecha derecha" type="button" (click)="scrollCarrusel('derecha')">
-              ›
-            </button>
-          </div>
-
-          <input
-            *ngIf="mostrarOtraEspecialidad"
-            [(ngModel)]="nuevaEspecialidad"
-            [ngModelOptions]="{ standalone: true }"
-            placeholder="Ingresá las especialidades (separadas por coma)"
           />
         </div>
 
@@ -140,8 +166,12 @@
           </div>
         </div>
 
-        <button type="submit" [disabled]="loading">Crear Usuario</button>
+        <button type="submit" appBotonColor="ver" [disabled]="loading">Crear Usuario</button>
       </div>
     </form>
   </ng-container>
 </section>
+
+<button class="btn-excel" (click)="descargarExcel()" title="Descargar Excel">
+  <img src="assets/images/excel-icono.png" alt="Descargar Excel" />
+</button>

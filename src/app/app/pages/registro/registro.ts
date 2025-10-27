@@ -10,6 +10,8 @@ import { ImageUploader } from '../../compartido/components/image-uploader/image-
 import { Loading } from '../../compartido/components/loading/loading';
 import { ToastService } from '../../core/servicios/toast';
 import { NgxCaptchaModule } from 'ngx-captcha';
+import { AutoFocusDirective } from '../../compartido/directivas/auto-focus';
+import { OnlyNumberDirective } from '../../compartido/directivas/only-number';
 
 @Component({
   selector: 'app-registro',
@@ -24,6 +26,8 @@ import { NgxCaptchaModule } from 'ngx-captcha';
     ImageUploader,
     Loading,
     NgxCaptchaModule,
+    AutoFocusDirective,
+    OnlyNumberDirective
   ],
 })
 export class Registro implements OnInit {

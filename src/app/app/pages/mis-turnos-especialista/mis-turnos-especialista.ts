@@ -7,13 +7,17 @@ import { ToastService } from '../../core/servicios/toast';
 import { Loading } from '../../compartido/components/loading/loading';
 import { Turnos } from '../../core/servicios/turnos';
 import { HeaderPropio } from '../../compartido/components/header/headerPropio';
+import { BotonColorDirective } from '../../compartido/directivas/boton-color';
+import { NombreCompletoPipe } from '../../compartido/pipes/nombre-completo-pipe';
+import { EmptyPipe } from '../../compartido/pipes/empty-pipe';
+
 
 @Component({
   selector: 'app-mis-turnos-especialista',
   standalone: true,
   templateUrl: './mis-turnos-especialista.html',
   styleUrls: ['./mis-turnos-especialista.scss'],
-  imports: [CommonModule, FormsModule, Loading, HeaderPropio],
+  imports: [CommonModule, FormsModule, Loading, HeaderPropio,BotonColorDirective, NombreCompletoPipe, EmptyPipe],
 })
 export class MisTurnosEspecialista implements OnInit {
   turnos: any[] = [];

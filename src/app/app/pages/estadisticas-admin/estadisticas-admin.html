@@ -1,0 +1,92 @@
+<app-HeaderPropio></app-HeaderPropio>
+
+<section class="estadisticas-admin">
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div class="carrusel" *ngIf="!loading">
+    <button
+      class="nav-btn izquierda"
+      (click)="anterior()"
+      [disabled]="indexActual === 0"
+    >
+      ‹
+    </button>
+
+    <div class="slides" [style.transform]="transformStyle">
+      <div class="slide">
+        <h2>Turnos por Especialidad</h2>
+        <div class="chart-container">
+          <canvas #chartEspecialidad></canvas>
+        </div>
+        <p *ngIf="sinDatosEspecialidad" class="sin-datos">
+          No hay datos disponibles.
+        </p>
+      </div>
+
+      <div class="slide">
+        <h2>Turnos por Día</h2>
+        <div class="chart-container">
+          <canvas #chartDias></canvas>
+        </div>
+        <p *ngIf="sinDatosDias" class="sin-datos">
+          No hay datos disponibles.
+        </p>
+      </div>
+
+      <div class="slide">
+        <h2>Turnos Solicitados (últimos 30 días)</h2>
+        <div class="chart-container">
+          <canvas #chartMedicos></canvas>
+        </div>
+        <p *ngIf="sinDatosMedicos" class="sin-datos">
+          No hay turnos en los últimos 30 días.
+        </p>
+      </div>
+
+      <div class="slide">
+        <h2>Turnos Realizados (últimos 30 días)</h2>
+        <div class="chart-container">
+          <canvas #chartrealizados></canvas>
+        </div>
+        <p *ngIf="sinDatosrealizados" class="sin-datos">
+          No hay turnos finalizados en los últimos 30 días.
+        </p>
+      </div>
+
+<div class="slide">
+  <h2>Log de ingresos al sistema (últimos 30 días)</h2>
+  <div class="chart-container">
+    <canvas #chartLogs></canvas>
+  </div>
+  <p *ngIf="sinDatosLogs" class="sin-datos">
+    No hay registros de ingresos recientes.
+  </p>
+</div>
+
+
+    </div>
+
+    <button
+      class="nav-btn derecha"
+      (click)="siguiente()"
+      [disabled]="indexActual === totalSlides - 1"
+    >
+      ›
+    </button>
+  </div>
+
+  <div class="indicadores" *ngIf="!loading">
+    <span
+      *ngFor="let i of [].constructor(totalSlides); let idx = index"
+      [class.activo]="idx === indexActual"
+    ></span>
+  </div>
+
+  <button class="btn-pdf" (click)="descargarPDF()">
+    <img src="assets/images/pdf.png" alt="PDF" />
+  </button>
+
+  <button class="btn-excel" (click)="descargarExcel()">
+    <img src="assets/images/excel-icono.png" alt="Excel" />
+  </button>
+</section>

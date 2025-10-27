@@ -1,4 +1,5 @@
 <app-HeaderPropio></app-HeaderPropio>
+
 <section class="turnos-especialista">
   <h2>Mis Turnos</h2>
 
@@ -13,39 +14,59 @@
 
   <div *ngIf="!loading && filtrado.length > 0; else sinTurnos" class="lista-turnos-especialista">
     <div *ngFor="let t of filtrado" class="tarjeta-turno">
-      <h3>{{ t.especialidad }}</h3>
+      <h3>{{ t.especialidad | empty:'Sin especialidad' }}</h3>
 
       <p>
         <strong>Paciente:</strong>
-        {{ t.usuarios_pacientes?.nombre }} {{ t.usuarios_pacientes?.apellido }}
+        {{ t.usuarios_pacientes | nombreCompleto }}
       </p>
       <p><strong>Fecha:</strong> {{ t.fecha | date }}</p>
-      <p><strong>Hora:</strong> {{ t.hora }}</p>
+      <p><strong>Hora:</strong> {{ t.hora | empty:'—' }}</p>
       <p>
         <strong>Estado:</strong>
         <span class="estado {{ t.estado }}">{{ t.estado | titlecase }}</span>
       </p>
 
       <div class="acciones">
-        <button *ngIf="puedeAceptar(t)" (click)="aceptarTurno(t)">Aceptar</button>
+        <button
+          *ngIf="puedeAceptar(t)"
+          appBotonColor="ver"
+          (click)="aceptarTurno(t)"
+        >
+          Aceptar
+        </button>
 
-        <button *ngIf="puedeCancelar(t)" (click)="abrirModalComentario(t, 'cancelado')">
+        <button
+          *ngIf="puedeCancelar(t)"
+          appBotonColor="cancelar"
+          (click)="abrirModalComentario(t, 'cancelado')"
+        >
           Cancelar
         </button>
 
         <button
           *ngIf="t.estado === 'cancelado'"
-          class="btn-motivo"
+          appBotonColor="motivo"
           (click)="verMotivoCancelacion(t)"
         >
           Ver Motivo
         </button>
 
-        <button *ngIf="puedeFinalizar(t)" (click)="abrirModalComentario(t, 'finalizado')">
+        <button
+          *ngIf="puedeFinalizar(t)"
+          appBotonColor="ver"
+          (click)="abrirModalComentario(t, 'finalizado')"
+        >
           Finalizar
         </button>
 
-        <button *ngIf="puedeVerResena(t)" (click)="verResena(t)">Ver Reseña</button>
+        <button
+          *ngIf="puedeVerResena(t)"
+          appBotonColor="reseña"
+          (click)="verResena(t)"
+        >
+          Ver Reseña
+        </button>
       </div>
     </div>
   </div>
@@ -54,6 +75,7 @@
     <p class="sin-turnos">No hay turnos asignados.</p>
   </ng-template>
 
+  <!-- MODAL RESEÑA / CANCELACIÓN -->
   <div class="modal-overlay" *ngIf="mostrarModalResena">
     <div class="modal-contenido">
       <h3>
@@ -67,9 +89,9 @@
 
       <p class="turno-info">
         <strong>Paciente:</strong>
-        {{ turnoSeleccionado?.usuarios_pacientes?.nombre }}
-        {{ turnoSeleccionado?.usuarios_pacientes?.apellido }}<br />
-        <strong>Especialidad:</strong> {{ turnoSeleccionado?.especialidad }}<br />
+        {{ turnoSeleccionado?.usuarios_pacientes | nombreCompleto }}<br />
+        <strong>Especialidad:</strong>
+        {{ turnoSeleccionado?.especialidad | empty:'Sin especialidad' }}<br />
         <strong>Fecha:</strong> {{ turnoSeleccionado?.fecha | date }}
       </p>
 
@@ -80,7 +102,7 @@
           }}
         </span>
 
-        <p [innerHTML]="d.contenido || d.texto || d.comentario"></p>
+        <p [innerHTML]="d.contenido || d.texto || d.comentario | empty:'Sin contenido'"></p>
 
         <div class="autor-cancelacion" *ngIf="d.autor">
           <strong>{{ d.autor }}</strong>
@@ -89,10 +111,11 @@
         <small>{{ d.creado_en | date : 'short' }}</small>
       </div>
 
-      <button class="cerrar-btn" (click)="cerrarModalResena()">Cerrar</button>
+      <button appBotonColor="cancelar" (click)="cerrarModalResena()">Cerrar</button>
     </div>
   </div>
 
+  <!-- MODAL ACCIÓN -->
   <div class="modal-overlay" *ngIf="mostrarModalComentario">
     <div class="modal-cancelacion">
       <div class="modal-header">
@@ -105,12 +128,22 @@
         <div class="form-historia">
           <div class="campo">
             <label>Altura (cm)</label>
-            <input type="number" [(ngModel)]="historia.altura_cm" placeholder="Ej: 175" />
+            <input
+              type="number"
+              [(ngModel)]="historia.altura_cm"
+              placeholder="Ej: 175"
+              appOnlyNumber
+            />
           </div>
 
           <div class="campo">
             <label>Peso (kg)</label>
-            <input type="number" [(ngModel)]="historia.peso_kg" placeholder="Ej: 70" />
+            <input
+              type="number"
+              [(ngModel)]="historia.peso_kg"
+              placeholder="Ej: 70"
+              appOnlyNumber
+            />
           </div>
 
           <div class="campo">
@@ -120,6 +153,7 @@
               step="0.1"
               [(ngModel)]="historia.temperatura_c"
               placeholder="Ej: 36.7"
+              appOnlyNumber
             />
           </div>
 
@@ -164,8 +198,8 @@
       </ng-template>
 
       <div class="modal-actions">
-        <button class="btn-confirmar" (click)="confirmarAccion()">Confirmar</button>
-        <button class="btn-cerrar" (click)="cerrarModalComentario()">Cancelar</button>
+        <button appBotonColor="ver" (click)="confirmarAccion()">Confirmar</button>
+        <button appBotonColor="cancelar" (click)="cerrarModalComentario()">Cancelar</button>
       </div>
     </div>
   </div>
