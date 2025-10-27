@@ -49,7 +49,7 @@ La aplicación cuenta con un **encabezado dinámico (`HeaderPropio`)** que se ad
 
 ### 🔐 Login
 Pantalla inicial para autenticarse en el sistema.  
-![Pantalla de Login](./src/assets/login.jpeg)
+![Pantalla de Login](./src/assets/images/login.jpeg)
 
 
 ### 🧾 Registro
@@ -57,22 +57,22 @@ Permite elegir el tipo de usuario (**Paciente** o **Especialista**).
 - Formulario validado con **reCAPTCHA v2**.  
 - Campos específicos según el tipo de usuario.  
 - Subida de imágenes (DNI o perfil).  
-![Pantalla de Registro](./src/assets/registro_1.jpeg)
-![Pantalla de Registro](./src/assets/registro_2.jpeg)
-![Pantalla de Registro](./src/assets/registro_3.jpeg)
-![Pantalla de Registro](./src/assets/captcha.jpeg)
+![Pantalla de Registro](./src/assets/images/registro_1.jpeg)
+![Pantalla de Registro](./src/assets/images/registro_2.jpeg)
+![Pantalla de Registro](./src/assets/images/registro_3.jpeg)
+![Pantalla de Registro](./src/assets/images/captcha.jpeg)
 
 ### 👨‍⚕️ Mi Perfil (Especialista)
 Configuración de horarios de atención por especialidad, día y hora.  
 
-![Pantalla de Especialista](./src/assets/mis-turnos-especialista.jpeg)
+![Pantalla de Especialista](./src/assets/images/mis-turnos-especialista.jpeg)
 
 ### 📅 Solicitar Turno
 Flujo paso a paso para que el paciente seleccione especialidad, especialista, fecha y horario disponible.  
 
 ### 🧑‍💼 Usuarios (Administrador)
 Gestión de usuarios registrados con posibilidad de aprobar o eliminar especialistas.  
-![Pantalla de Usuarios](./src/assets/usuarios-admin.jpeg)
+![Pantalla de Usuarios](./src/assets/images/usuarios-admin.jpeg)
 
 ### 📊 Estadísticas Administrativas
 Gráficos interactivos para el administrador generados con **Chart.js**:
@@ -83,7 +83,7 @@ Gráficos interactivos para el administrador generados con **Chart.js**:
 - Log de Ingresos al Sistema  
 
 Incluye exportación a PDF y Excel.  
-![Pantalla de Estadisticas](./src/assets/estadisticas-admin.jpeg)
+![Pantalla de Estadisticas](./src/assets/images/estadisticas-admin.jpeg)
 
 ---
 
@@ -115,7 +115,7 @@ Sistema completo de registro médico implementado para **especialistas, paciente
 - Campos dinámicos (`extras`) definidos por el especialista.  
 - Visualización en modales estéticos y descargable en PDF.
 
-![Pantalla de Historia Clinica](./src/assets/historia-clinica-paciente.jpeg)
+![Pantalla de Historia Clinica](./src/assets/images/historia-clinica-paciente.jpeg)
 
 ### 📄 Exportación PDF
 Generado con **jsPDF + AutoTable**:
