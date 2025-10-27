@@ -49,7 +49,7 @@ La aplicación cuenta con un **encabezado dinámico (`HeaderPropio`)** que se ad
 
 ### 🔐 Login
 Pantalla inicial para autenticarse en el sistema.  
-![Pantalla de Login](./src/assets/screenshots/login.jpeg)
+![Pantalla de Login](./src/assets/login.jpeg)
 
 
 ### 🧾 Registro
